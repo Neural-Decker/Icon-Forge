@@ -35,11 +35,6 @@ public class IconForgeWindow : EditorWindow
 
         GUI.enabled = sourceObject != null;
 
-        if (GUILayout.Button("Generate Preview"))
-        {
-            Debug.Log($"Icon Forge preview requested for: {sourceObject.name}");
-        }
-
         GUI.enabled = true;
 
         profile = (IconForgeProfile)EditorGUILayout.ObjectField(
@@ -54,11 +49,29 @@ public class IconForgeWindow : EditorWindow
             typeof(IconOutputSettings),
             false);
 
+
+        //Peview section
         GUILayout.Label("Preview", EditorStyles.boldLabel);
 
-        Rect previewRect = GUILayoutUtility.GetRect(256, 256, GUILayout.ExpandWidth(false));
-        EditorGUI.DrawRect(previewRect, new Color(0.12f, 0.12f, 0.12f));
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
 
+        Rect previewRect = GUILayoutUtility.GetRect(
+            256,
+            256,
+            GUILayout.Width(256),
+            GUILayout.Height(256));
+
+        EditorGUI.DrawRect(previewRect, new Color(0.12f, 0.12f, 0.12f));
         GUI.Label(previewRect, "Preview Area", EditorStyles.centeredGreyMiniLabel);
+
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
+
+        //Button to Generate preview
+        if (GUILayout.Button("Generate Preview"))
+        {
+            Debug.Log($"Icon Forge preview requested for: {sourceObject.name}");
+        }
     }
 }
