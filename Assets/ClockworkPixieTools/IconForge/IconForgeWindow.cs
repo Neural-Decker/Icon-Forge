@@ -9,16 +9,33 @@ public class IconForgeWindow : EditorWindow
         GetWindow<IconForgeWindow>("Icon Forge");
     }
 
+    private GameObject sourceObject;
+
     private void OnGUI()
     {
         GUILayout.Label("Clockwork Pixie Icon Forge", EditorStyles.boldLabel);
 
         EditorGUILayout.Space();
 
-        GUILayout.Label("Prototype Build");
+        sourceObject = (GameObject)EditorGUILayout.ObjectField(
+            "Source Object",
+            sourceObject,
+            typeof(GameObject),
+            true);
+
+        EditorGUILayout.Space();
 
         EditorGUILayout.HelpBox(
-            "Icon generation functionality not yet implemented.",
+            "Select a prefab or scene object to prepare for icon generation.",
             MessageType.Info);
+
+        GUI.enabled = sourceObject != null;
+
+        if (GUILayout.Button("Generate Preview"))
+        {
+            Debug.Log($"Icon Forge preview requested for: {sourceObject.name}");
+        }
+
+        GUI.enabled = true;
     }
 }
