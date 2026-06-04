@@ -1,16 +1,24 @@
+using UnityEditor;
 using UnityEngine;
 
-public class IconForgeWindow : MonoBehaviour
+public class IconForgeWindow : EditorWindow
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [MenuItem("Tools/Clockwork Pixie/Icon Forge")]
+    public static void ShowWindow()
     {
-        
+        GetWindow<IconForgeWindow>("Icon Forge");
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnGUI()
     {
-        
+        GUILayout.Label("Clockwork Pixie Icon Forge", EditorStyles.boldLabel);
+
+        EditorGUILayout.Space();
+
+        GUILayout.Label("Prototype Build");
+
+        EditorGUILayout.HelpBox(
+            "Icon generation functionality not yet implemented.",
+            MessageType.Info);
     }
 }
