@@ -10,6 +10,10 @@ public class IconForgeWindow : EditorWindow
     }
 
     private GameObject sourceObject;
+    private IconForgeProfile profile;
+    private IconOutputSettings outputSettings;
+    private Texture2D logoTexture;
+    private Texture2D footprintsTexture;
 
     private void OnGUI()
     {
@@ -37,5 +41,24 @@ public class IconForgeWindow : EditorWindow
         }
 
         GUI.enabled = true;
+
+        profile = (IconForgeProfile)EditorGUILayout.ObjectField(
+            "Profile",
+            profile,
+            typeof(IconForgeProfile),
+            false);
+
+        outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField(
+            "Output Settings",
+            outputSettings,
+            typeof(IconOutputSettings),
+            false);
+
+        GUILayout.Label("Preview", EditorStyles.boldLabel);
+
+        Rect previewRect = GUILayoutUtility.GetRect(256, 256, GUILayout.ExpandWidth(false));
+        EditorGUI.DrawRect(previewRect, new Color(0.12f, 0.12f, 0.12f));
+
+        GUI.Label(previewRect, "Preview Area", EditorStyles.centeredGreyMiniLabel);
     }
 }
