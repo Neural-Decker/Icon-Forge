@@ -14,6 +14,7 @@ public class IconForgeWindow : EditorWindow
     private IconOutputSettings outputSettings;
     private Texture2D logoTexture;
     private Texture2D footprintsTexture;
+    private Texture2D previewTexture;
 
     private void OnGUI()
     {
@@ -38,9 +39,6 @@ public class IconForgeWindow : EditorWindow
             "Select a prefab or scene object to prepare for icon generation.",
             MessageType.Info);
 
-        GUI.enabled = sourceObject != null;
-        GUI.enabled = true;
-
         EditorGUILayout.Space(10);
 
         //Profile and Output Settings
@@ -63,11 +61,16 @@ public class IconForgeWindow : EditorWindow
 
         EditorGUILayout.Space(10);
 
-        //Button to Generate preview
+        // Button to Generate preview
+        GUI.enabled = sourceObject != null;
+
         if (GUILayout.Button("Generate Preview"))
         {
             Debug.Log($"Icon Forge preview requested for: {sourceObject.name}");
+            previewTexture = IconRenderCapture.GeneratePreview(sourceObject);
         }
+
+        GUI.enabled = true;
     }
 
     private void DrawPreviewPanel()
@@ -109,7 +112,19 @@ public class IconForgeWindow : EditorWindow
 
         EditorGUI.DrawRect(innerRect, new Color(0.12f, 0.12f, 0.12f));
 
-        GUI.Label(innerRect, "Preview", EditorStyles.centeredGreyMiniLabel);
+        if (previewTexture != null)
+        {
+            GUI.DrawTexture(
+                innerRect,
+                previewTexture,
+                ScaleMode.ScaleToFit);
+        } else
+        {
+            GUI.Label(
+                innerRect,
+                "Preview",
+                EditorStyles.centeredGreyMiniLabel);
+        }
 
         EditorGUILayout.EndVertical();
     }
