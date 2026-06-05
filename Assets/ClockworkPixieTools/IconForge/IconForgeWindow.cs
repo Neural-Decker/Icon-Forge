@@ -17,26 +17,33 @@ public class IconForgeWindow : EditorWindow
 
     private void OnGUI()
     {
+        //TODO: low opasity footprints in the Background
+        //Title
+        //TODO: add Icon here, followed by Lable text
         GUILayout.Label("Clockwork Pixie Icon Forge", EditorStyles.boldLabel);
 
-        EditorGUILayout.Space();
+        EditorGUILayout.Space(10);
 
+        //Source
         sourceObject = (GameObject)EditorGUILayout.ObjectField(
             "Source Object",
             sourceObject,
             typeof(GameObject),
             true);
 
-        EditorGUILayout.Space();
+        EditorGUILayout.Space(10);
 
+        //Help Box
         EditorGUILayout.HelpBox(
             "Select a prefab or scene object to prepare for icon generation.",
             MessageType.Info);
 
         GUI.enabled = sourceObject != null;
-
         GUI.enabled = true;
 
+        EditorGUILayout.Space(10);
+
+        //Profile and Output Settings
         profile = (IconForgeProfile)EditorGUILayout.ObjectField(
             "Profile",
             profile,
@@ -49,29 +56,61 @@ public class IconForgeWindow : EditorWindow
             typeof(IconOutputSettings),
             false);
 
+        EditorGUILayout.Space(10);
 
         //Peview section
-        GUILayout.Label("Preview", EditorStyles.boldLabel);
+        DrawPreviewPanel();
 
-        EditorGUILayout.BeginHorizontal();
-        GUILayout.FlexibleSpace();
-
-        Rect previewRect = GUILayoutUtility.GetRect(
-            256,
-            256,
-            GUILayout.Width(256),
-            GUILayout.Height(256));
-
-        EditorGUI.DrawRect(previewRect, new Color(0.12f, 0.12f, 0.12f));
-        GUI.Label(previewRect, "Preview Area", EditorStyles.centeredGreyMiniLabel);
-
-        GUILayout.FlexibleSpace();
-        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.Space(10);
 
         //Button to Generate preview
         if (GUILayout.Button("Generate Preview"))
         {
             Debug.Log($"Icon Forge preview requested for: {sourceObject.name}");
         }
+    }
+
+    private void DrawPreviewPanel()
+    {
+        EditorGUILayout.LabelField("Preview", EditorStyles.boldLabel);
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+
+        DrawPreviewBox("Detail Preview", 256, 256);
+        GUILayout.Space(16);
+        DrawPreviewBox("64 x 64", 64, 64);
+
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawPreviewBox(string label, int width, int height)
+    {
+        EditorGUILayout.BeginVertical(GUILayout.Width(width));
+
+        EditorGUILayout.LabelField(label, EditorStyles.centeredGreyMiniLabel);
+
+        Rect outerRect = GUILayoutUtility.GetRect(
+            width,
+            height,
+            GUILayout.Width(width),
+            GUILayout.Height(height));
+
+        // Border
+        EditorGUI.DrawRect(outerRect, new Color(0.28f, 0.28f, 0.28f));
+
+        // Inner preview background
+        Rect innerRect = new Rect(
+            outerRect.x + 1,
+            outerRect.y + 1,
+            outerRect.width - 2,
+            outerRect.height - 2);
+
+        EditorGUI.DrawRect(innerRect, new Color(0.12f, 0.12f, 0.12f));
+
+        GUI.Label(innerRect, "Preview", EditorStyles.centeredGreyMiniLabel);
+
+        EditorGUILayout.EndVertical();
     }
 }
