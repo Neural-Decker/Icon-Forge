@@ -15,17 +15,18 @@ public class IconForgeWindow : EditorWindow
     private Texture2D logoTexture;
     private Texture2D footprintsTexture;
     private Texture2D previewTexture;
+    private float iconFillPercent = 70f;
 
     private void OnGUI()
     {
-        //TODO: low opasity footprints in the Background
-        //Title
-        //TODO: add Icon here, followed by Lable text
+        // TODO: low opasity footprints in the Background
+        // Title
+        // TODO: add Icon here, followed by Lable text
         GUILayout.Label("Clockwork Pixie Icon Forge", EditorStyles.boldLabel);
 
         EditorGUILayout.Space(10);
 
-        //Source
+        // Source
         sourceObject = (GameObject)EditorGUILayout.ObjectField(
             "Source Object",
             sourceObject,
@@ -34,14 +35,14 @@ public class IconForgeWindow : EditorWindow
 
         EditorGUILayout.Space(10);
 
-        //Help Box
+        // Help Box
         EditorGUILayout.HelpBox(
             "Select a prefab or scene object to prepare for icon generation.",
             MessageType.Info);
 
         EditorGUILayout.Space(10);
 
-        //Profile and Output Settings
+        // Profile and Output Settings
         profile = (IconForgeProfile)EditorGUILayout.ObjectField(
             "Profile",
             profile,
@@ -56,7 +57,15 @@ public class IconForgeWindow : EditorWindow
 
         EditorGUILayout.Space(10);
 
-        //Peview section
+        // Framing
+        EditorGUILayout.LabelField("Framing", EditorStyles.boldLabel);
+
+        iconFillPercent = EditorGUILayout.Slider("Icon Fill", iconFillPercent, 40f, 90f);
+        iconFillPercent = Mathf.Round(iconFillPercent / 5f) * 5f;
+
+        EditorGUILayout.Space(10);
+
+        // Peview section
         DrawPreviewPanel();
 
         EditorGUILayout.Space(10);
@@ -67,7 +76,9 @@ public class IconForgeWindow : EditorWindow
         if (GUILayout.Button("Generate Preview"))
         {
             Debug.Log($"Icon Forge preview requested for: {sourceObject.name}");
-            previewTexture = IconRenderCapture.GeneratePreview(sourceObject);
+            previewTexture = IconRenderCapture.GeneratePreview(
+                sourceObject,
+                iconFillPercent / 100f);
         }
 
         GUI.enabled = true;

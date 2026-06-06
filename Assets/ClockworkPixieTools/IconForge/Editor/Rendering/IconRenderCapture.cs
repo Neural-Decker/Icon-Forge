@@ -4,7 +4,7 @@ public static class IconRenderCapture
 {
     private const int PreviewLayer = 31;
 
-    public static Texture2D GeneratePreview(GameObject sourceObject)
+    public static Texture2D GeneratePreview(GameObject sourceObject, float fillPercent)
     {
         if (sourceObject == null)
         {
@@ -26,7 +26,7 @@ public static class IconRenderCapture
         Bounds objectBounds = CalculateRendererBounds(previewObject);
         Debug.Log($"Icon Forge Bounds: Center={objectBounds.center}, Size={objectBounds.size}");
 
-        Camera camera = CreatePreviewCamera(objectBounds, 0.70f);
+        Camera camera = CreatePreviewCamera(objectBounds, fillPercent);
         Light light = CreatePreviewLight();
 
         SetLayerRecursively(camera.gameObject, PreviewLayer);
