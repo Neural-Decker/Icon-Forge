@@ -23,7 +23,10 @@ public static class IconRenderCapture
 
         SetLayerRecursively(previewRoot, PreviewLayer);
 
-        Camera camera = CreatePreviewCamera();
+        Bounds objectBounds = CalculateRendererBounds(previewObject);
+        Debug.Log($"Icon Forge Bounds: Center={objectBounds.center}, Size={objectBounds.size}");
+
+        Camera camera = CreatePreviewCamera(objectBounds, 0.70f);
         Light light = CreatePreviewLight();
 
         SetLayerRecursively(camera.gameObject, PreviewLayer);
@@ -56,7 +59,7 @@ public static class IconRenderCapture
         return result;
     }
 
-    private static Camera CreatePreviewCamera()
+    private static Camera CreatePreviewCamera(Bounds objectBounds, float fillPercent)
     {
         GameObject cameraObject = new GameObject("Icon Forge Preview Camera");
         Camera camera = cameraObject.AddComponent<Camera>();
@@ -65,11 +68,71 @@ public static class IconRenderCapture
         camera.backgroundColor = new Color(0.08f, 0.08f, 0.08f, 1f);
         camera.cullingMask = 1 << PreviewLayer;
         camera.orthographic = true;
-        camera.orthographicSize = 1.5f;
+
         camera.transform.position = new Vector3(2.5f, 2f, 2.5f);
-        camera.transform.LookAt(Vector3.zero);
+        camera.transform.LookAt(objectBounds.center);
+
+        fillPercent = Mathf.Clamp(fillPercent, 0.1f, 1f);
+
+        float requiredOrthographicSize = CalculateCameraAlignedOrthographicSize(
+            camera,
+            objectBounds,
+            fillPercent);
+
+        camera.orthographicSize = requiredOrthographicSize;
 
         return camera;
+    }
+
+    private static float CalculateCameraAlignedOrthographicSize(Camera camera, Bounds bounds, float fillPercent)
+    {
+        Vector3[] corners = GetBoundsCorners(bounds);
+
+        float minX = float.MaxValue;
+        float maxX = float.MinValue;
+        float minY = float.MaxValue;
+        float maxY = float.MinValue;
+
+        Matrix4x4 worldToCamera = camera.worldToCameraMatrix;
+
+        foreach (Vector3 corner in corners)
+        {
+            Vector3 cameraSpaceCorner = worldToCamera.MultiplyPoint(corner);
+
+            minX = Mathf.Min(minX, cameraSpaceCorner.x);
+            maxX = Mathf.Max(maxX, cameraSpaceCorner.x);
+            minY = Mathf.Min(minY, cameraSpaceCorner.y);
+            maxY = Mathf.Max(maxY, cameraSpaceCorner.y);
+        }
+
+        float cameraSpaceWidth = maxX - minX;
+        float cameraSpaceHeight = maxY - minY;
+
+        float requiredSizeByHeight = cameraSpaceHeight / 2f;
+        float requiredSizeByWidth = cameraSpaceWidth / (2f * camera.aspect);
+
+        float requiredSize = Mathf.Max(requiredSizeByHeight, requiredSizeByWidth);
+
+        return requiredSize / fillPercent;
+    }
+
+    private static Vector3[] GetBoundsCorners(Bounds bounds)
+    {
+        Vector3 center = bounds.center;
+        Vector3 extents = bounds.extents;
+
+        return new Vector3[]
+        {
+        center + new Vector3(-extents.x, -extents.y, -extents.z),
+        center + new Vector3(-extents.x, -extents.y,  extents.z),
+        center + new Vector3(-extents.x,  extents.y, -extents.z),
+        center + new Vector3(-extents.x,  extents.y,  extents.z),
+
+        center + new Vector3( extents.x, -extents.y, -extents.z),
+        center + new Vector3( extents.x, -extents.y,  extents.z),
+        center + new Vector3( extents.x,  extents.y, -extents.z),
+        center + new Vector3( extents.x,  extents.y,  extents.z),
+        };
     }
 
     private static Light CreatePreviewLight()
@@ -82,6 +145,26 @@ public static class IconRenderCapture
         light.transform.rotation = Quaternion.Euler(45f, -30f, 0f);
 
         return light;
+    }
+
+    private static Bounds CalculateRendererBounds(GameObject target)
+    {
+        Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
+
+        if (renderers.Length == 0)
+        {
+            Debug.LogWarning("Icon Forge: Source object has no renderers. Using fallback bounds.");
+            return new Bounds(Vector3.zero, Vector3.one);
+        }
+
+        Bounds bounds = renderers[0].bounds;
+
+        for (int i = 1; i < renderers.Length; i++)
+        {
+            bounds.Encapsulate(renderers[i].bounds);
+        }
+
+        return bounds;
     }
 
     private static void SetLayerRecursively(GameObject target, int layer)
