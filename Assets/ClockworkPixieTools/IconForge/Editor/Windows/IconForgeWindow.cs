@@ -28,6 +28,7 @@ public class IconForgeWindow : EditorWindow
         EditorGUILayout.Space(10);
 
         // Source
+        EditorGUI.BeginChangeCheck();
         sourceObject = (GameObject)EditorGUILayout.ObjectField(
             "Source Object",
             sourceObject,
@@ -63,6 +64,11 @@ public class IconForgeWindow : EditorWindow
 
         iconFillPercent = EditorGUILayout.Slider("Icon Fill", iconFillPercent, 40f, 90f);
         iconFillPercent = Mathf.Round(iconFillPercent / 5f) * 5f;
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            GeneratePreview();
+        }
 
         //Debuging
         EditorGUILayout.Space(8);
@@ -107,13 +113,25 @@ public class IconForgeWindow : EditorWindow
 
         if (GUILayout.Button("Generate Preview"))
         {
-            Debug.Log($"Icon Forge preview requested for: {sourceObject.name}");
-            previewTexture = IconRenderCapture.GeneratePreview(
-                sourceObject,
-                iconFillPercent / 100f);
+            GeneratePreview();
         }
 
         GUI.enabled = true;
+    }
+
+    private void GeneratePreview()
+    {
+        if (sourceObject == null)
+        {
+            previewTexture = null;
+            return;
+        }
+
+        previewTexture = IconRenderCapture.GeneratePreview(
+            sourceObject,
+            iconFillPercent / 100f);
+
+        Repaint();
     }
 
     private void DrawPreviewPanel()
