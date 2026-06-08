@@ -50,7 +50,7 @@ public static class IconPreviewRigBuilder
         Camera camera = cameraObject.AddComponent<Camera>();
 
         camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.backgroundColor = new Color(0.08f, 0.08f, 0.08f, 1f);
+        camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
         camera.cullingMask = 1 << PreviewLayer;
         camera.orthographic = true;
 

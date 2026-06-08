@@ -134,6 +134,30 @@ public class IconForgeWindow : EditorWindow
         Repaint();
     }
 
+    private void DrawCheckerboard(Rect rect)
+    {
+        int tileSize = 16;
+
+        Color colorA = new Color(0.35f, 0.35f, 0.35f);
+        Color colorB = new Color(0.25f, 0.25f, 0.25f);
+
+        for (int y = 0; y < rect.height; y += tileSize)
+        {
+            for (int x = 0; x < rect.width; x += tileSize)
+            {
+                Rect tile = new Rect(
+                    rect.x + x,
+                    rect.y + y,
+                    tileSize,
+                    tileSize);
+
+                bool even = ((x / tileSize) + (y / tileSize)) % 2 == 0;
+
+                EditorGUI.DrawRect(tile, even ? colorA : colorB);
+            }
+        }
+    }
+
     private void DrawPreviewPanel()
     {
         EditorGUILayout.LabelField("Preview", EditorStyles.boldLabel);
@@ -171,14 +195,15 @@ public class IconForgeWindow : EditorWindow
             outerRect.width - 2,
             outerRect.height - 2);
 
-        EditorGUI.DrawRect(innerRect, new Color(0.12f, 0.12f, 0.12f));
+        DrawCheckerboard(innerRect);
 
         if (previewTexture != null)
         {
             GUI.DrawTexture(
                 innerRect,
                 previewTexture,
-                ScaleMode.ScaleToFit);
+                ScaleMode.ScaleToFit,
+                true);
         } else
         {
             GUI.Label(

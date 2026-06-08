@@ -19,7 +19,7 @@ public static class IconRenderCapture
         RenderTexture previous = RenderTexture.active;
         RenderTexture.active = renderTexture;
 
-        GL.Clear(true, true, new Color(0.08f, 0.08f, 0.08f, 1f));
+        GL.Clear(true, true, new Color(0f, 0f, 0f, 0f));
 
         rig.Camera.Render();
 
