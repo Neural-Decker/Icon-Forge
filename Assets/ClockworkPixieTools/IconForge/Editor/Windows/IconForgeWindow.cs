@@ -16,6 +16,7 @@ public class IconForgeWindow : EditorWindow
     private Texture2D footprintsTexture;
     private Texture2D previewTexture;
     private float iconFillPercent = 70f;
+    private bool showDebugSection = false;
 
     private void OnGUI()
     {
@@ -62,6 +63,37 @@ public class IconForgeWindow : EditorWindow
 
         iconFillPercent = EditorGUILayout.Slider("Icon Fill", iconFillPercent, 40f, 90f);
         iconFillPercent = Mathf.Round(iconFillPercent / 5f) * 5f;
+
+        //Debuging
+        EditorGUILayout.Space(8);
+
+        showDebugSection = EditorGUILayout.Foldout(
+            showDebugSection,
+            "Debug",
+            true);
+
+        if (showDebugSection)
+        {
+            EditorGUI.indentLevel++;
+
+            GUI.enabled = sourceObject != null;
+
+            if (GUILayout.Button("Create Debug Rig"))
+            {
+                IconForgeDebugRig.CreateDebugRig(
+                    sourceObject,
+                    iconFillPercent / 100f);
+            }
+
+            GUI.enabled = true;
+
+            if (GUILayout.Button("Destroy Debug Rig"))
+            {
+                IconForgeDebugRig.DestroyDebugRig();
+            }
+
+            EditorGUI.indentLevel--;
+        }
 
         EditorGUILayout.Space(10);
 
