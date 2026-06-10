@@ -1,6 +1,8 @@
+using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
-using System.IO;
+using System.Collections.Generic;
 
 public class IconForgeWindow : EditorWindow
 {
@@ -36,36 +38,85 @@ public class IconForgeWindow : EditorWindow
     private bool useTransparentBackground = true;
     private Color backgroundColor = new Color(0.08f, 0.08f, 0.08f, 1f);
     private int selectedResolutionIndex = 2;
+    private readonly List<GameObject> batchObjects = new List<GameObject>();
 
     private void OnGUI()
     {
         // TODO: low opasity footprints in the Background
-        // Title
+        // Menu section - Title
         // TODO: add Icon here, followed by Lable text
         GUILayout.Label("Clockwork Pixie Icon Forge", EditorStyles.boldLabel);
 
         EditorGUILayout.Space(10);
 
-        // Source
+        // Menu section - Source
         EditorGUI.BeginChangeCheck();
         sourceObject = (GameObject)EditorGUILayout.ObjectField("Source Object", sourceObject, typeof(GameObject), true);
 
         EditorGUILayout.Space(10);
 
-        // Help Box
+        // Menu section - Help Box
         EditorGUILayout.HelpBox("Select a prefab or scene object to prepare for icon generation.", MessageType.Info);
 
         EditorGUILayout.Space(10);
 
-        // Profile and Output Settings
+        // Menue section - Profile and Output Settings
         profile = (IconForgeProfile)EditorGUILayout.ObjectField("Profile", profile, typeof(IconForgeProfile), false);
+        EditorGUILayout.Space(10);
+
+        // Menu Section - Batch processing
+        EditorGUILayout.LabelField("Batch Processing", EditorStyles.boldLabel);
+        GUI.enabled = sourceObject != null;
+
+        if (GUILayout.Button("Add Source Object to Batch"))
+        {
+            if (!batchObjects.Contains(sourceObject))
+            {
+                batchObjects.Add(sourceObject);
+            }
+        }
+
+        GUI.enabled = true;
+
+        if (GUILayout.Button("Clear Batch List"))
+        {
+            batchObjects.Clear();
+        }
+
+        EditorGUILayout.LabelField($"Batch Count: {batchObjects.Count}");
+
+        for (int i = 0; i < batchObjects.Count; i++)
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            batchObjects[i] = (GameObject)EditorGUILayout.ObjectField(
+                batchObjects[i],
+                typeof(GameObject),
+                false);
+
+            if (GUILayout.Button("X", GUILayout.Width(24)))
+            {
+                batchObjects.RemoveAt(i);
+                break;
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+        EditorGUILayout.Space(10);
+
+        //Menu section - Output Settings
         outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField("Output Settings", outputSettings, typeof(IconOutputSettings), false);
+        EditorGUILayout.Space(10);
+
+        //Menu section - transperent and colored background
         useTransparentBackground = EditorGUILayout.Toggle("Transparent Background", useTransparentBackground);
         if (!useTransparentBackground)
         {
             backgroundColor = EditorGUILayout.ColorField("Background Color", backgroundColor);
         }
+        
         selectedResolutionIndex = EditorGUILayout.Popup("Export Resolution", selectedResolutionIndex, resolutionLabels);
+        
         exportFileName = EditorGUILayout.TextField("Export File Name", exportFileName);
 
         EditorGUILayout.Space(10);
@@ -80,10 +131,9 @@ public class IconForgeWindow : EditorWindow
         {
             GeneratePreview();
         }
+        EditorGUILayout.Space(10);
 
         //Debuging
-        EditorGUILayout.Space(8);
-
         showDebugSection = EditorGUILayout.Foldout(showDebugSection, "Debug", true);
 
         if (showDebugSection)
@@ -127,6 +177,12 @@ public class IconForgeWindow : EditorWindow
         if (GUILayout.Button("Export PNG"))
         {
             ExportPreviewPng();
+        }
+        GUI.enabled = batchObjects.Count > 0;
+
+        if (GUILayout.Button("Export Batch PNGs"))
+        {
+            ExportBatchPngs();
         }
 
         GUI.enabled = true;
@@ -199,6 +255,32 @@ public class IconForgeWindow : EditorWindow
         AssetDatabase.Refresh();
 
         Debug.Log($"Icon Forge: Exported {exportResolution}x{exportResolution} PNG to {fullPath}");
+    }
+
+    private void ExportBatchPngs()
+    {
+        if (batchObjects.Count == 0)
+        {
+            Debug.LogWarning("Icon Forge: Batch list is empty.");
+            return;
+        }
+
+        foreach (GameObject batchObject in batchObjects)
+        {
+            if (batchObject == null)
+            {
+                continue;
+            }
+
+            sourceObject = batchObject;
+            exportFileName = $"{batchObject.name}.png";
+
+            ExportPreviewPng();
+        }
+
+        AssetDatabase.Refresh();
+
+        Debug.Log($"Icon Forge: Batch exported {batchObjects.Count} icons.");
     }
 
     private void DrawCheckerboard(Rect rect)
