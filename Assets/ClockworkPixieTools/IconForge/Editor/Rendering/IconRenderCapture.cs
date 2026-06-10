@@ -2,7 +2,7 @@ using UnityEngine;
 
 public static class IconRenderCapture
 {
-    public static Texture2D GeneratePreview(GameObject sourceObject, float fillPercent)
+    public static Texture2D GeneratePreview(GameObject sourceObject, float fillPercent, int resolution)
     {
         IconPreviewRig rig = IconPreviewRigBuilder.Build(sourceObject, fillPercent);
 
@@ -10,8 +10,6 @@ public static class IconRenderCapture
         {
             return null;
         }
-
-        int resolution = 256;
 
         RenderTexture renderTexture = new RenderTexture(resolution, resolution, 24);
         rig.Camera.targetTexture = renderTexture;

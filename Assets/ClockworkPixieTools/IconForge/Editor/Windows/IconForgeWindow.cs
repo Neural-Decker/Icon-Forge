@@ -19,6 +19,23 @@ public class IconForgeWindow : EditorWindow
     private float iconFillPercent = 70f;
     private bool showDebugSection = false;
     private string exportFileName = "IconForge_Icon.png";
+    private readonly int[] resolutionValues =
+    {
+        64,
+        128,
+        256,
+        512
+    };
+
+    private readonly string[] resolutionLabels =
+    {
+        "64 × 64",
+        "128 × 128",
+        "256 × 256",
+        "512 × 512"
+    };
+
+    private int selectedResolutionIndex = 2;
 
     private void OnGUI()
     {
@@ -31,37 +48,20 @@ public class IconForgeWindow : EditorWindow
 
         // Source
         EditorGUI.BeginChangeCheck();
-        sourceObject = (GameObject)EditorGUILayout.ObjectField(
-            "Source Object",
-            sourceObject,
-            typeof(GameObject),
-            true);
+        sourceObject = (GameObject)EditorGUILayout.ObjectField("Source Object", sourceObject, typeof(GameObject), true);
 
         EditorGUILayout.Space(10);
 
         // Help Box
-        EditorGUILayout.HelpBox(
-            "Select a prefab or scene object to prepare for icon generation.",
-            MessageType.Info);
+        EditorGUILayout.HelpBox("Select a prefab or scene object to prepare for icon generation.", MessageType.Info);
 
         EditorGUILayout.Space(10);
 
         // Profile and Output Settings
-        profile = (IconForgeProfile)EditorGUILayout.ObjectField(
-            "Profile",
-            profile,
-            typeof(IconForgeProfile),
-            false);
-
-        outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField(
-            "Output Settings",
-            outputSettings,
-            typeof(IconOutputSettings),
-            false);
-
-        exportFileName = EditorGUILayout.TextField(
-            "Export File Name",
-            exportFileName);
+        profile = (IconForgeProfile)EditorGUILayout.ObjectField("Profile", profile, typeof(IconForgeProfile), false);
+        outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField("Output Settings", outputSettings, typeof(IconOutputSettings), false);
+        selectedResolutionIndex = EditorGUILayout.Popup("Export Resolution", selectedResolutionIndex, resolutionLabels);
+        exportFileName = EditorGUILayout.TextField("Export File Name", exportFileName);
 
         EditorGUILayout.Space(10);
 
@@ -79,10 +79,7 @@ public class IconForgeWindow : EditorWindow
         //Debuging
         EditorGUILayout.Space(8);
 
-        showDebugSection = EditorGUILayout.Foldout(
-            showDebugSection,
-            "Debug",
-            true);
+        showDebugSection = EditorGUILayout.Foldout(showDebugSection, "Debug", true);
 
         if (showDebugSection)
         {
@@ -137,18 +134,29 @@ public class IconForgeWindow : EditorWindow
             return;
         }
 
-        previewTexture = IconRenderCapture.GeneratePreview(
-            sourceObject,
-            iconFillPercent / 100f);
+        previewTexture = IconRenderCapture.GeneratePreview( sourceObject, iconFillPercent / 100f, 256);
 
         Repaint();
     }
 
     private void ExportPreviewPng()
     {
-        if (previewTexture == null)
+        if (sourceObject == null)
         {
-            Debug.LogWarning("Icon Forge: No preview texture available to export.");
+            Debug.LogWarning("Icon Forge: No source object selected for export.");
+            return;
+        }
+
+        int exportResolution = resolutionValues[selectedResolutionIndex];
+
+        Texture2D exportTexture = IconRenderCapture.GeneratePreview(
+            sourceObject,
+            iconFillPercent / 100f,
+            exportResolution);
+
+        if (exportTexture == null)
+        {
+            Debug.LogWarning("Icon Forge: Could not generate export texture.");
             return;
         }
 
@@ -178,12 +186,12 @@ public class IconForgeWindow : EditorWindow
 
         string fullPath = Path.Combine(exportFolder, safeFileName);
 
-        byte[] pngData = previewTexture.EncodeToPNG();
+        byte[] pngData = exportTexture.EncodeToPNG();
         File.WriteAllBytes(fullPath, pngData);
 
         AssetDatabase.Refresh();
 
-        Debug.Log($"Icon Forge: Exported PNG to {fullPath}");
+        Debug.Log($"Icon Forge: Exported {exportResolution}x{exportResolution} PNG to {fullPath}");
     }
 
     private void DrawCheckerboard(Rect rect)
