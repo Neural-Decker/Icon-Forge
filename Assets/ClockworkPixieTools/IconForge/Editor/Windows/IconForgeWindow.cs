@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using System.IO;
 
 public class IconForgeWindow : EditorWindow
 {
@@ -17,6 +18,7 @@ public class IconForgeWindow : EditorWindow
     private Texture2D previewTexture;
     private float iconFillPercent = 70f;
     private bool showDebugSection = false;
+    private string exportFileName = "IconForge_Icon.png";
 
     private void OnGUI()
     {
@@ -56,6 +58,10 @@ public class IconForgeWindow : EditorWindow
             outputSettings,
             typeof(IconOutputSettings),
             false);
+
+        exportFileName = EditorGUILayout.TextField(
+            "Export File Name",
+            exportFileName);
 
         EditorGUILayout.Space(10);
 
@@ -115,6 +121,10 @@ public class IconForgeWindow : EditorWindow
         {
             GeneratePreview();
         }
+        if (GUILayout.Button("Export PNG"))
+        {
+            ExportPreviewPng();
+        }
 
         GUI.enabled = true;
     }
@@ -132,6 +142,48 @@ public class IconForgeWindow : EditorWindow
             iconFillPercent / 100f);
 
         Repaint();
+    }
+
+    private void ExportPreviewPng()
+    {
+        if (previewTexture == null)
+        {
+            Debug.LogWarning("Icon Forge: No preview texture available to export.");
+            return;
+        }
+
+        string exportFolder = "Assets/GeneratedIcons";
+
+        if (outputSettings != null && !string.IsNullOrWhiteSpace(outputSettings.exportFolder))
+        {
+            exportFolder = outputSettings.exportFolder;
+        }
+
+        if (!Directory.Exists(exportFolder))
+        {
+            Directory.CreateDirectory(exportFolder);
+        }
+
+        string safeFileName = exportFileName;
+
+        if (string.IsNullOrWhiteSpace(safeFileName))
+        {
+            safeFileName = "IconForge_Icon.png";
+        }
+
+        if (!safeFileName.EndsWith(".png"))
+        {
+            safeFileName += ".png";
+        }
+
+        string fullPath = Path.Combine(exportFolder, safeFileName);
+
+        byte[] pngData = previewTexture.EncodeToPNG();
+        File.WriteAllBytes(fullPath, pngData);
+
+        AssetDatabase.Refresh();
+
+        Debug.Log($"Icon Forge: Exported PNG to {fullPath}");
     }
 
     private void DrawCheckerboard(Rect rect)
