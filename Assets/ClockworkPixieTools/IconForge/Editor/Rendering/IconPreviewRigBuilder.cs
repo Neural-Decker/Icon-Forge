@@ -6,7 +6,10 @@ public static class IconPreviewRigBuilder
     private const string RigName = "Icon Forge Preview Rig";
     private static readonly Vector3 RigPosition = new Vector3(1000f, 0f, 1000f);
 
-    public static IconPreviewRig Build(GameObject sourceObject, float fillPercent)
+    public static IconPreviewRig Build(
+    GameObject sourceObject,
+    float fillPercent,
+    Color backgroundColor)
     {
         if (sourceObject == null)
         {
@@ -26,7 +29,7 @@ public static class IconPreviewRigBuilder
 
         Bounds bounds = ObjectBoundsAnalyzer.CalculateRendererBounds(previewObject);
 
-        Camera camera = CreateCamera(bounds, fillPercent);
+        Camera camera = CreateCamera(bounds, fillPercent, backgroundColor);
         camera.transform.SetParent(root.transform);
 
         Light mainLight = CreateLight();
@@ -44,13 +47,16 @@ public static class IconPreviewRigBuilder
         };
     }
 
-    private static Camera CreateCamera(Bounds bounds, float fillPercent)
+    private static Camera CreateCamera(
+    Bounds bounds,
+    float fillPercent,
+    Color backgroundColor)
     {
         GameObject cameraObject = new GameObject("Icon Forge Preview Camera");
         Camera camera = cameraObject.AddComponent<Camera>();
 
         camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+        camera.backgroundColor = backgroundColor;
         camera.cullingMask = 1 << PreviewLayer;
         camera.orthographic = true;
 

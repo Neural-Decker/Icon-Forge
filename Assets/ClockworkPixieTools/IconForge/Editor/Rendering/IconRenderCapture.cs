@@ -2,9 +2,16 @@ using UnityEngine;
 
 public static class IconRenderCapture
 {
-    public static Texture2D GeneratePreview(GameObject sourceObject, float fillPercent, int resolution)
+    public static Texture2D GeneratePreview(
+    GameObject sourceObject,
+    float fillPercent,
+    int resolution,
+    Color backgroundColor)
     {
-        IconPreviewRig rig = IconPreviewRigBuilder.Build(sourceObject, fillPercent);
+        IconPreviewRig rig = IconPreviewRigBuilder.Build(
+            sourceObject,
+            fillPercent,
+            backgroundColor);
 
         if (rig == null)
         {
@@ -17,7 +24,7 @@ public static class IconRenderCapture
         RenderTexture previous = RenderTexture.active;
         RenderTexture.active = renderTexture;
 
-        GL.Clear(true, true, new Color(0f, 0f, 0f, 0f));
+        GL.Clear(true, true, backgroundColor);
 
         rig.Camera.Render();
 

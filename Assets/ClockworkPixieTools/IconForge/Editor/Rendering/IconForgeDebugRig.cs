@@ -4,11 +4,17 @@ public static class IconForgeDebugRig
 {
     private const string DebugRigName = "Icon Forge Preview Rig";
 
-    public static void CreateDebugRig(GameObject sourceObject, float fillPercent)
+    public static void CreateDebugRig(
+    GameObject sourceObject,
+    float fillPercent,
+    Color backgroundColor)
     {
         DestroyDebugRig();
 
-        IconPreviewRig rig = IconPreviewRigBuilder.Build(sourceObject, fillPercent);
+        IconPreviewRig rig = IconPreviewRigBuilder.Build(
+            sourceObject,
+            fillPercent,
+            backgroundColor);
 
         if (rig == null)
         {

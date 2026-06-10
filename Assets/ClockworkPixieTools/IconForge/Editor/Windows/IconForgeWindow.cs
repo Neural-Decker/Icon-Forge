@@ -26,7 +26,6 @@ public class IconForgeWindow : EditorWindow
         256,
         512
     };
-
     private readonly string[] resolutionLabels =
     {
         "64 × 64",
@@ -34,7 +33,8 @@ public class IconForgeWindow : EditorWindow
         "256 × 256",
         "512 × 512"
     };
-
+    private bool useTransparentBackground = true;
+    private Color backgroundColor = new Color(0.08f, 0.08f, 0.08f, 1f);
     private int selectedResolutionIndex = 2;
 
     private void OnGUI()
@@ -60,6 +60,11 @@ public class IconForgeWindow : EditorWindow
         // Profile and Output Settings
         profile = (IconForgeProfile)EditorGUILayout.ObjectField("Profile", profile, typeof(IconForgeProfile), false);
         outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField("Output Settings", outputSettings, typeof(IconOutputSettings), false);
+        useTransparentBackground = EditorGUILayout.Toggle("Transparent Background", useTransparentBackground);
+        if (!useTransparentBackground)
+        {
+            backgroundColor = EditorGUILayout.ColorField("Background Color", backgroundColor);
+        }
         selectedResolutionIndex = EditorGUILayout.Popup("Export Resolution", selectedResolutionIndex, resolutionLabels);
         exportFileName = EditorGUILayout.TextField("Export File Name", exportFileName);
 
@@ -91,7 +96,8 @@ public class IconForgeWindow : EditorWindow
             {
                 IconForgeDebugRig.CreateDebugRig(
                     sourceObject,
-                    iconFillPercent / 100f);
+                    iconFillPercent / 100f,
+                    backgroundColor);
             }
 
             GUI.enabled = true;
@@ -134,7 +140,9 @@ public class IconForgeWindow : EditorWindow
             return;
         }
 
-        previewTexture = IconRenderCapture.GeneratePreview( sourceObject, iconFillPercent / 100f, 256);
+        Color renderBackgroundColor = useTransparentBackground ? new Color(0f, 0f, 0f, 0f) : backgroundColor;
+
+        previewTexture = IconRenderCapture.GeneratePreview(sourceObject, iconFillPercent / 100f, 256, renderBackgroundColor);
 
         Repaint();
     }
@@ -149,10 +157,9 @@ public class IconForgeWindow : EditorWindow
 
         int exportResolution = resolutionValues[selectedResolutionIndex];
 
-        Texture2D exportTexture = IconRenderCapture.GeneratePreview(
-            sourceObject,
-            iconFillPercent / 100f,
-            exportResolution);
+        Color renderBackgroundColor = useTransparentBackground ? new Color(0f, 0f, 0f, 0f) : backgroundColor;
+
+        Texture2D exportTexture = IconRenderCapture.GeneratePreview(sourceObject, iconFillPercent / 100f, exportResolution, renderBackgroundColor);
 
         if (exportTexture == null)
         {
