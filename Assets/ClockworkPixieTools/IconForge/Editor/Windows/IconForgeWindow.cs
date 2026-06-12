@@ -38,6 +38,8 @@ public class IconForgeWindow : EditorWindow
     private Color backgroundColor = new Color(0.08f, 0.08f, 0.08f, 1f);
     private int selectedResolutionIndex = 2;
     private readonly List<GameObject> batchObjects = new List<GameObject>();
+    private bool showBatchList = true;
+    private Vector2 batchListScrollPosition;
 
     private void OnGUI()
     {
@@ -105,22 +107,45 @@ public class IconForgeWindow : EditorWindow
         EditorGUILayout.LabelField($"Batch Count: {batchObjects.Count}");
 
         // Display list of objects in batch list
-        for (int i = 0; i < batchObjects.Count; i++)
+        showBatchList = EditorGUILayout.Foldout(showBatchList, "Batch List", true);
+
+        if (showBatchList)
         {
-            EditorGUILayout.BeginHorizontal();
-
-            batchObjects[i] = (GameObject)EditorGUILayout.ObjectField(
-                batchObjects[i],
-                typeof(GameObject),
-                false);
-
-            if (GUILayout.Button("X", GUILayout.Width(24)))
+            if (batchObjects.Count == 0)
             {
-                batchObjects.RemoveAt(i);
-                break;
-            }
+                EditorGUILayout.HelpBox(
+                    "Batch list is empty. Add source objects or selected hierarchy objects.",
+                    MessageType.Info);
+            } else
+            {
+                float rowHeight = EditorGUIUtility.singleLineHeight + 4f;
+                float maxVisibleRows = 10f;
+                float scrollHeight = Mathf.Min(batchObjects.Count, maxVisibleRows) * rowHeight;
 
-            EditorGUILayout.EndHorizontal();
+                batchListScrollPosition = EditorGUILayout.BeginScrollView(
+                    batchListScrollPosition,
+                    GUILayout.Height(scrollHeight));
+
+                for (int i = 0; i < batchObjects.Count; i++)
+                {
+                    EditorGUILayout.BeginHorizontal();
+
+                    batchObjects[i] = (GameObject)EditorGUILayout.ObjectField(
+                        batchObjects[i],
+                        typeof(GameObject),
+                        false);
+
+                    if (GUILayout.Button("X", GUILayout.Width(24)))
+                    {
+                        batchObjects.RemoveAt(i);
+                        break;
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                }
+
+                EditorGUILayout.EndScrollView();
+            }
         }
 
         EditorGUILayout.Space(10);
