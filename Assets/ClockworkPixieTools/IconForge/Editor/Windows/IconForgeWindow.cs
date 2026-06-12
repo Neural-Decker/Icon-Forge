@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using System.Collections.Generic;
 
 public class IconForgeWindow : EditorWindow
 {
@@ -49,25 +48,37 @@ public class IconForgeWindow : EditorWindow
 
         EditorGUILayout.Space(10);
 
-        // Menu section - Source
+        // ====================
+        // [UI] Source
+        // ====================
         EditorGUI.BeginChangeCheck();
         sourceObject = (GameObject)EditorGUILayout.ObjectField("Source Object", sourceObject, typeof(GameObject), true);
 
         EditorGUILayout.Space(10);
 
-        // Menu section - Help Box
+        // ====================
+        // [UI] Help Box
+        // ====================
         EditorGUILayout.HelpBox("Select a prefab or scene object to prepare for icon generation.", MessageType.Info);
 
         EditorGUILayout.Space(10);
 
-        // Menue section - Profile and Output Settings
+        // ====================
+        // [UI] Profile
+        // ====================
         profile = (IconForgeProfile)EditorGUILayout.ObjectField("Profile", profile, typeof(IconForgeProfile), false);
+        
         EditorGUILayout.Space(10);
 
-        // Menu Section - Batch processing
+        // ====================
+        // [UI] Batch processing
+        // ====================
         EditorGUILayout.LabelField("Batch Processing", EditorStyles.boldLabel);
+        
+        // Enable
         GUI.enabled = sourceObject != null;
 
+        // Button - Add single object to batchlist (Only active when object selected in sorce object field)
         if (GUILayout.Button("Add Source Object to Batch"))
         {
             if (!batchObjects.Contains(sourceObject))
@@ -78,13 +89,22 @@ public class IconForgeWindow : EditorWindow
 
         GUI.enabled = true;
 
+        // Button - Add multiple objects from hierarchy 
+        if (GUILayout.Button("Add Selected Hierarchy Objects to Batch"))
+        {
+            AddSelectedHierarchyObjectsToBatch();
+        }
+
+        // Button - Clear batch list
         if (GUILayout.Button("Clear Batch List"))
         {
             batchObjects.Clear();
         }
 
+        // Batch counter
         EditorGUILayout.LabelField($"Batch Count: {batchObjects.Count}");
 
+        // Display list of objects in batch list
         for (int i = 0; i < batchObjects.Count; i++)
         {
             EditorGUILayout.BeginHorizontal();
@@ -102,26 +122,40 @@ public class IconForgeWindow : EditorWindow
 
             EditorGUILayout.EndHorizontal();
         }
+
         EditorGUILayout.Space(10);
 
-        //Menu section - Output Settings
+        // ======================
+        // [UI] Output Settings
+        // ======================
         outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField("Output Settings", outputSettings, typeof(IconOutputSettings), false);
         EditorGUILayout.Space(10);
 
-        //Menu section - transperent and colored background
+        // ======================
+        // [UI] Background Transperent and Color
+        // ======================
         useTransparentBackground = EditorGUILayout.Toggle("Transparent Background", useTransparentBackground);
+
         if (!useTransparentBackground)
         {
             backgroundColor = EditorGUILayout.ColorField("Background Color", backgroundColor);
         }
         
+        // ======================
+        // [UI] Resolution
+        // ======================
         selectedResolutionIndex = EditorGUILayout.Popup("Export Resolution", selectedResolutionIndex, resolutionLabels);
         
+        // ======================
+        // [UI] File naming
+        // ======================
         exportFileName = EditorGUILayout.TextField("Export File Name", exportFileName);
 
         EditorGUILayout.Space(10);
 
-        // Framing
+        // ======================
+        // [UI] Framing
+        // ======================
         EditorGUILayout.LabelField("Framing", EditorStyles.boldLabel);
 
         iconFillPercent = EditorGUILayout.Slider("Icon Fill", iconFillPercent, 40f, 90f);
@@ -133,7 +167,9 @@ public class IconForgeWindow : EditorWindow
         }
         EditorGUILayout.Space(10);
 
-        //Debuging
+        // ======================
+        // [UI] Debuging
+        // ======================
         showDebugSection = EditorGUILayout.Foldout(showDebugSection, "Debug", true);
 
         if (showDebugSection)
@@ -142,6 +178,7 @@ public class IconForgeWindow : EditorWindow
 
             GUI.enabled = sourceObject != null;
 
+            // Button - create rig
             if (GUILayout.Button("Create Debug Rig"))
             {
                 IconForgeDebugRig.CreateDebugRig(
@@ -152,6 +189,7 @@ public class IconForgeWindow : EditorWindow
 
             GUI.enabled = true;
 
+            // Button - Destroy rig
             if (GUILayout.Button("Destroy Debug Rig"))
             {
                 IconForgeDebugRig.DestroyDebugRig();
@@ -162,12 +200,16 @@ public class IconForgeWindow : EditorWindow
 
         EditorGUILayout.Space(10);
 
-        // Peview section
+        // ========================
+        // [UI] Peview section
+        // ========================
         DrawPreviewPanel();
 
         EditorGUILayout.Space(10);
 
-        // Button to Generate preview
+        // ========================
+        // [UI] Buttons
+        // ========================
         GUI.enabled = sourceObject != null;
 
         if (GUILayout.Button("Generate Preview"))
@@ -281,6 +323,37 @@ public class IconForgeWindow : EditorWindow
         AssetDatabase.Refresh();
 
         Debug.Log($"Icon Forge: Batch exported {batchObjects.Count} icons.");
+    }
+
+    private void AddSelectedHierarchyObjectsToBatch()
+    {
+        GameObject[] selectedObjects = Selection.gameObjects;
+
+        if (selectedObjects == null || selectedObjects.Length == 0)
+        {
+            Debug.LogWarning("Icon Forge: No hierarchy objects selected.");
+            return;
+        }
+
+        int addedCount = 0;
+
+        foreach (GameObject selectedObject in selectedObjects)
+        {
+            if (selectedObject == null)
+            {
+                continue;
+            }
+
+            if (batchObjects.Contains(selectedObject))
+            {
+                continue;
+            }
+
+            batchObjects.Add(selectedObject);
+            addedCount++;
+        }
+
+        Debug.Log($"Icon Forge: Added {addedCount} selected hierarchy objects to batch.");
     }
 
     private void DrawCheckerboard(Rect rect)
