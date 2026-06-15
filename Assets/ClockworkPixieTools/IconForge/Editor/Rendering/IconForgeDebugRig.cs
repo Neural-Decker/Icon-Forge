@@ -7,14 +7,16 @@ public static class IconForgeDebugRig
     public static void CreateDebugRig(
     GameObject sourceObject,
     float fillPercent,
-    Color backgroundColor)
+    Color backgroundColor,
+    IconCameraPreset cameraPreset)
     {
         DestroyDebugRig();
 
         IconPreviewRig rig = IconPreviewRigBuilder.Build(
             sourceObject,
             fillPercent,
-            backgroundColor);
+            backgroundColor,
+            cameraPreset);
 
         if (rig == null)
         {

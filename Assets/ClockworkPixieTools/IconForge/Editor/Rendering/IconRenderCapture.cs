@@ -6,12 +6,14 @@ public static class IconRenderCapture
     GameObject sourceObject,
     float fillPercent,
     int resolution,
-    Color backgroundColor)
+    Color backgroundColor,
+    IconCameraPreset cameraPreset)
     {
         IconPreviewRig rig = IconPreviewRigBuilder.Build(
             sourceObject,
             fillPercent,
-            backgroundColor);
+            backgroundColor,
+            cameraPreset);
 
         if (rig == null)
         {

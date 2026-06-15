@@ -5,11 +5,13 @@ public static class IconPreviewRigBuilder
     private const int PreviewLayer = 31;
     private const string RigName = "Icon Forge Preview Rig";
     private static readonly Vector3 RigPosition = new Vector3(1000f, 0f, 1000f);
+    private const float FrameSafePaddingMultiplier = 1.15f;
 
     public static IconPreviewRig Build(
-    GameObject sourceObject,
-    float fillPercent,
-    Color backgroundColor)
+        GameObject sourceObject,
+        float fillPercent,
+        Color backgroundColor,
+        IconCameraPreset cameraPreset)
     {
         if (sourceObject == null)
         {
@@ -29,10 +31,11 @@ public static class IconPreviewRigBuilder
 
         Bounds bounds = ObjectBoundsAnalyzer.CalculateRendererBounds(previewObject);
 
-        Camera camera = CreateCamera(bounds, fillPercent, backgroundColor);
+        Camera camera = CreateCamera(bounds, fillPercent, backgroundColor, cameraPreset);
         camera.transform.SetParent(root.transform);
 
-        Light mainLight = CreateLight();
+        //Lighting
+        Light mainLight = CreateLight(camera);
         mainLight.transform.SetParent(root.transform);
 
         SetLayerRecursively(root, PreviewLayer);
@@ -48,9 +51,10 @@ public static class IconPreviewRigBuilder
     }
 
     private static Camera CreateCamera(
-    Bounds bounds,
-    float fillPercent,
-    Color backgroundColor)
+        Bounds bounds,
+        float fillPercent,
+        Color backgroundColor,
+        IconCameraPreset cameraPreset)
     {
         GameObject cameraObject = new GameObject("Icon Forge Preview Camera");
         Camera camera = cameraObject.AddComponent<Camera>();
@@ -60,7 +64,8 @@ public static class IconPreviewRigBuilder
         camera.cullingMask = 1 << PreviewLayer;
         camera.orthographic = true;
 
-        camera.transform.position = RigPosition + new Vector3(2.5f, 2f, 2.5f);
+        Vector3 cameraOffset = GetCameraOffset(cameraPreset);
+        camera.transform.position = bounds.center + cameraOffset;
         camera.transform.LookAt(bounds.center);
 
         fillPercent = Mathf.Clamp(fillPercent, 0.1f, 1f);
@@ -70,15 +75,25 @@ public static class IconPreviewRigBuilder
         return camera;
     }
 
-    private static Light CreateLight()
+    private static Light CreateLight(Camera camera)
     {
         GameObject lightObject = new GameObject("Icon Forge Preview Light");
         Light light = lightObject.AddComponent<Light>();
 
         light.type = LightType.Directional;
         light.intensity = 1.2f;
-        light.transform.position = RigPosition + new Vector3(0f, 3f, 0f);
-        light.transform.rotation = Quaternion.Euler(45f, -30f, 0f);
+
+        Vector3 cameraForward = camera.transform.forward;
+        Vector3 cameraRight = camera.transform.right;
+        Vector3 cameraUp = camera.transform.up;
+
+        Vector3 lightDirection =
+            cameraForward
+            - cameraRight * 0.35f
+            + cameraUp * 0.45f;
+
+        light.transform.rotation = Quaternion.LookRotation(lightDirection.normalized);
+        light.transform.position = camera.transform.position;
 
         return light;
     }
@@ -112,7 +127,7 @@ public static class IconPreviewRigBuilder
 
         float requiredSize = Mathf.Max(requiredSizeByHeight, requiredSizeByWidth);
 
-        return requiredSize / fillPercent;
+        return (requiredSize / fillPercent) * FrameSafePaddingMultiplier;
     }
 
     private static Vector3[] GetBoundsCorners(Bounds bounds)
@@ -141,6 +156,25 @@ public static class IconPreviewRigBuilder
         foreach (Transform child in target.transform)
         {
             SetLayerRecursively(child.gameObject, layer);
+        }
+    }
+
+    private static Vector3 GetCameraOffset(IconCameraPreset preset)
+    {
+        switch (preset)
+        {
+            case IconCameraPreset.Front:
+                return new Vector3(0f, 0f, 5f);
+
+            case IconCameraPreset.Side:
+                return new Vector3(5f, 0f, 0f);
+
+            case IconCameraPreset.Top:
+                return new Vector3(0f, 5f, 0.001f);
+
+            case IconCameraPreset.Isometric:
+            default:
+                return new Vector3(2.5f, 2f, 2.5f);
         }
     }
 }

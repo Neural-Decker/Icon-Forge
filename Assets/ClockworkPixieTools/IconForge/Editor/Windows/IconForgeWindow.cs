@@ -40,6 +40,7 @@ public class IconForgeWindow : EditorWindow
     private readonly List<GameObject> batchObjects = new List<GameObject>();
     private bool showBatchList = true;
     private Vector2 batchListScrollPosition;
+    private IconCameraPreset cameraPreset = IconCameraPreset.Isometric;
 
     private void OnGUI()
     {
@@ -192,6 +193,23 @@ public class IconForgeWindow : EditorWindow
         }
         EditorGUILayout.Space(10);
 
+        // ============================================================
+        // CAMERA
+        // ============================================================
+
+        EditorGUI.BeginChangeCheck();
+
+        cameraPreset = (IconCameraPreset)EditorGUILayout.EnumPopup(
+            "Camera Preset",
+            cameraPreset);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            GeneratePreview();
+        }
+
+        EditorGUILayout.Space(10);
+
         // ======================
         // [UI] Debuging
         // ======================
@@ -206,10 +224,13 @@ public class IconForgeWindow : EditorWindow
             // Button - create rig
             if (GUILayout.Button("Create Debug Rig"))
             {
+                Color renderBackgroundColor = useTransparentBackground ? new Color(0f, 0f, 0f, 0f) : backgroundColor;
+
                 IconForgeDebugRig.CreateDebugRig(
                     sourceObject,
                     iconFillPercent / 100f,
-                    backgroundColor);
+                    renderBackgroundColor,
+                    cameraPreset);
             }
 
             GUI.enabled = true;
@@ -265,7 +286,12 @@ public class IconForgeWindow : EditorWindow
 
         Color renderBackgroundColor = useTransparentBackground ? new Color(0f, 0f, 0f, 0f) : backgroundColor;
 
-        previewTexture = IconRenderCapture.GeneratePreview(sourceObject, iconFillPercent / 100f, 256, renderBackgroundColor);
+        previewTexture = IconRenderCapture.GeneratePreview(
+            sourceObject,
+            iconFillPercent / 100f,
+            256,
+            renderBackgroundColor,
+            cameraPreset);
 
         Repaint();
     }
@@ -282,7 +308,12 @@ public class IconForgeWindow : EditorWindow
 
         Color renderBackgroundColor = useTransparentBackground ? new Color(0f, 0f, 0f, 0f) : backgroundColor;
 
-        Texture2D exportTexture = IconRenderCapture.GeneratePreview(sourceObject, iconFillPercent / 100f, exportResolution, renderBackgroundColor);
+        Texture2D exportTexture = IconRenderCapture.GeneratePreview(
+            sourceObject,
+            iconFillPercent / 100f,
+            exportResolution,
+            renderBackgroundColor,
+            cameraPreset);
 
         if (exportTexture == null)
         {
