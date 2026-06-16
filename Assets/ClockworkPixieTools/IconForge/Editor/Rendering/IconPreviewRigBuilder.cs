@@ -63,9 +63,12 @@ public static class IconPreviewRigBuilder
         camera.backgroundColor = backgroundColor;
         camera.cullingMask = 1 << PreviewLayer;
         camera.orthographic = true;
+        camera.nearClipPlane = 0.0001f;
+        camera.farClipPlane = 1000f;
 
         Vector3 cameraOffset = GetCameraOffset(cameraPreset);
-        camera.transform.position = bounds.center + cameraOffset;
+        Vector3 cameraDirection = cameraOffset.normalized;
+        camera.transform.position = bounds.center + cameraDirection * 20f;
         camera.transform.LookAt(bounds.center);
 
         fillPercent = Mathf.Clamp(fillPercent, 0.1f, 1f);
