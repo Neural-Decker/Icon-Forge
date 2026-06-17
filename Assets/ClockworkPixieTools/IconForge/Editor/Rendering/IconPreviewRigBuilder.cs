@@ -63,12 +63,13 @@ public static class IconPreviewRigBuilder
         camera.backgroundColor = backgroundColor;
         camera.cullingMask = 1 << PreviewLayer;
         camera.orthographic = true;
+        camera.aspect = 1f;
         camera.nearClipPlane = 0.0001f;
         camera.farClipPlane = 1000f;
 
         Vector3 cameraOffset = GetCameraOffset(cameraPreset);
         Vector3 cameraDirection = cameraOffset.normalized;
-        camera.transform.position = bounds.center + cameraDirection * 20f;
+        camera.transform.position = bounds.center + cameraDirection * 50f;
         camera.transform.LookAt(bounds.center);
 
         fillPercent = Mathf.Clamp(fillPercent, 0.1f, 1f);
@@ -129,6 +130,14 @@ public static class IconPreviewRigBuilder
         float requiredSizeByWidth = cameraSpaceWidth / (2f * camera.aspect);
 
         float requiredSize = Mathf.Max(requiredSizeByHeight, requiredSizeByWidth);
+
+        Debug.Log(
+            $"Icon Forge Projection Debug | " +
+            $"Width: {cameraSpaceWidth:F3}, " +
+            $"Height: {cameraSpaceHeight:F3}, " +
+            $"SizeByWidth: {requiredSizeByWidth:F3}, " +
+            $"SizeByHeight: {requiredSizeByHeight:F3}, " +
+            $"FinalRequiredSize: {requiredSize:F3}");
 
         return (requiredSize / fillPercent) * FrameSafePaddingMultiplier;
     }

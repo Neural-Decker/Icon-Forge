@@ -41,6 +41,7 @@ public class IconForgeWindow : EditorWindow
     private bool showBatchList = true;
     private Vector2 batchListScrollPosition;
     private IconCameraPreset cameraPreset = IconCameraPreset.Isometric;
+    private IconItemTypePreset itemTypePreset = IconItemTypePreset.Generic;
 
     private void OnGUI()
     {
@@ -179,19 +180,21 @@ public class IconForgeWindow : EditorWindow
 
         EditorGUILayout.Space(10);
 
-        // ======================
-        // [UI] Framing
-        // ======================
-        EditorGUILayout.LabelField("Framing", EditorStyles.boldLabel);
+        // ============================================================
+        // ITEM TYPE PRESET
+        // ============================================================
 
-        iconFillPercent = EditorGUILayout.Slider("Icon Fill", iconFillPercent, 40f, 90f);
-        iconFillPercent = Mathf.Round(iconFillPercent / 5f) * 5f;
+        EditorGUI.BeginChangeCheck();
+
+        itemTypePreset = (IconItemTypePreset)EditorGUILayout.EnumPopup(
+            "Item Type",
+            itemTypePreset);
 
         if (EditorGUI.EndChangeCheck())
         {
+            ApplyItemTypePreset();
             GeneratePreview();
         }
-        EditorGUILayout.Space(10);
 
         // ============================================================
         // CAMERA
@@ -202,6 +205,19 @@ public class IconForgeWindow : EditorWindow
         cameraPreset = (IconCameraPreset)EditorGUILayout.EnumPopup(
             "Camera Preset",
             cameraPreset);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            GeneratePreview();
+        }
+
+        // ======================
+        // [UI] Framing
+        // ======================
+        EditorGUILayout.LabelField("Framing", EditorStyles.boldLabel);
+
+        iconFillPercent = EditorGUILayout.Slider("Icon Fill", iconFillPercent, 40f, 90f);
+        iconFillPercent = Mathf.Round(iconFillPercent / 5f) * 5f;
 
         if (EditorGUI.EndChangeCheck())
         {
@@ -491,5 +507,46 @@ public class IconForgeWindow : EditorWindow
         }
 
         EditorGUILayout.EndVertical();
+    }
+
+    private void ApplyItemTypePreset()
+    {
+        switch (itemTypePreset)
+        {
+            case IconItemTypePreset.Generic:
+                cameraPreset = IconCameraPreset.Isometric;
+                iconFillPercent = 70f;
+                break;
+
+            case IconItemTypePreset.Weapon:
+                cameraPreset = IconCameraPreset.Isometric;
+                iconFillPercent = 80f;
+                break;
+
+            case IconItemTypePreset.HeadFocus:
+                cameraPreset = IconCameraPreset.Isometric;
+                iconFillPercent = 90f;
+                break;
+
+            case IconItemTypePreset.Shield:
+                cameraPreset = IconCameraPreset.Front;
+                iconFillPercent = 80f;
+                break;
+
+            case IconItemTypePreset.Potion:
+                cameraPreset = IconCameraPreset.Isometric;
+                iconFillPercent = 75f;
+                break;
+
+            case IconItemTypePreset.Chest:
+                cameraPreset = IconCameraPreset.Isometric;
+                iconFillPercent = 80f;
+                break;
+
+            case IconItemTypePreset.Resource:
+                cameraPreset = IconCameraPreset.Isometric;
+                iconFillPercent = 75f;
+                break;
+        }
     }
 }
