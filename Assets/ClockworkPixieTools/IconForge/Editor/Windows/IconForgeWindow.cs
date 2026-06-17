@@ -42,6 +42,7 @@ public class IconForgeWindow : EditorWindow
     private Vector2 batchListScrollPosition;
     private IconCameraPreset cameraPreset = IconCameraPreset.Isometric;
     private IconItemTypePreset itemTypePreset = IconItemTypePreset.Generic;
+    private IconLightingProfile lightingProfile = IconLightingProfile.Neutral;
 
     private void OnGUI()
     {
@@ -211,6 +212,21 @@ public class IconForgeWindow : EditorWindow
             GeneratePreview();
         }
 
+        // ============================================================
+        // LIGHT
+        // ============================================================
+        EditorGUI.BeginChangeCheck();
+
+        lightingProfile =
+            (IconLightingProfile)EditorGUILayout.EnumPopup(
+                "Lighting Profile",
+                lightingProfile);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            GeneratePreview();
+        }
+
         // ======================
         // [UI] Framing
         // ======================
@@ -246,7 +262,8 @@ public class IconForgeWindow : EditorWindow
                     sourceObject,
                     iconFillPercent / 100f,
                     renderBackgroundColor,
-                    cameraPreset);
+                    cameraPreset,
+                    lightingProfile);
             }
 
             GUI.enabled = true;
@@ -307,7 +324,8 @@ public class IconForgeWindow : EditorWindow
             iconFillPercent / 100f,
             256,
             renderBackgroundColor,
-            cameraPreset);
+            cameraPreset,
+            lightingProfile);
 
         Repaint();
     }
@@ -329,7 +347,8 @@ public class IconForgeWindow : EditorWindow
             iconFillPercent / 100f,
             exportResolution,
             renderBackgroundColor,
-            cameraPreset);
+            cameraPreset,
+            lightingProfile);
 
         if (exportTexture == null)
         {

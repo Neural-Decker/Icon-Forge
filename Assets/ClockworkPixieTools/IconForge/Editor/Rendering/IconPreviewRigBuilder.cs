@@ -11,7 +11,8 @@ public static class IconPreviewRigBuilder
         GameObject sourceObject,
         float fillPercent,
         Color backgroundColor,
-        IconCameraPreset cameraPreset)
+        IconCameraPreset cameraPreset,
+        IconLightingProfile lightingProfile)
     {
         if (sourceObject == null)
         {
@@ -35,7 +36,7 @@ public static class IconPreviewRigBuilder
         camera.transform.SetParent(root.transform);
 
         //Lighting
-        Light mainLight = CreateLight(camera);
+        Light mainLight = CreateKeyLight(camera, lightingProfile);
         mainLight.transform.SetParent(root.transform);
 
         SetLayerRecursively(root, PreviewLayer);
@@ -79,24 +80,53 @@ public static class IconPreviewRigBuilder
         return camera;
     }
 
-    private static Light CreateLight(Camera camera)
+    private static Light CreateKeyLight(
+    Camera camera,
+    IconLightingProfile profile)
     {
-        GameObject lightObject = new GameObject("Icon Forge Preview Light");
+        GameObject lightObject = new GameObject("Icon Forge Key Light");
         Light light = lightObject.AddComponent<Light>();
 
         light.type = LightType.Directional;
-        light.intensity = 1.2f;
+        light.cullingMask = 1 << PreviewLayer;
 
-        Vector3 cameraForward = camera.transform.forward;
-        Vector3 cameraRight = camera.transform.right;
-        Vector3 cameraUp = camera.transform.up;
+        switch (profile)
+        {
+            case IconLightingProfile.Fantasy:
+                light.intensity = 1.3f;
+                light.color = new Color(1f, 0.92f, 0.78f);
+                break;
 
-        Vector3 lightDirection =
-            cameraForward
-            - cameraRight * 0.35f
-            + cameraUp * 0.45f;
+            case IconLightingProfile.SciFi:
+                light.intensity = 1.25f;
+                light.color = new Color(0.75f, 0.9f, 1f);
+                break;
 
-        light.transform.rotation = Quaternion.LookRotation(lightDirection.normalized);
+            case IconLightingProfile.Stylized:
+                light.intensity = 1.5f;
+                light.color = Color.white;
+                break;
+
+            case IconLightingProfile.Minimal:
+                light.intensity = 0.9f;
+                light.color = Color.white;
+                break;
+
+            case IconLightingProfile.Neutral:
+            default:
+                light.intensity = 1.2f;
+                light.color = Color.white;
+                break;
+        }
+
+        Vector3 lightDirectionToObject =
+            camera.transform.forward
+            - camera.transform.right * 0.25f
+            + camera.transform.up * 0.25f;
+
+        light.transform.rotation =
+            Quaternion.LookRotation(lightDirectionToObject.normalized);
+
         light.transform.position = camera.transform.position;
 
         return light;

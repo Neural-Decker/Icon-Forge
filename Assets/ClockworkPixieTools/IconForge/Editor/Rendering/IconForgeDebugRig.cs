@@ -5,10 +5,11 @@ public static class IconForgeDebugRig
     private const string DebugRigName = "Icon Forge Preview Rig";
 
     public static void CreateDebugRig(
-    GameObject sourceObject,
-    float fillPercent,
-    Color backgroundColor,
-    IconCameraPreset cameraPreset)
+        GameObject sourceObject,
+        float fillPercent,
+        Color backgroundColor,
+        IconCameraPreset cameraPreset,
+        IconLightingProfile lightingProfile)
     {
         DestroyDebugRig();
 
@@ -16,7 +17,8 @@ public static class IconForgeDebugRig
             sourceObject,
             fillPercent,
             backgroundColor,
-            cameraPreset);
+            cameraPreset,
+            lightingProfile);
 
         if (rig == null)
         {
