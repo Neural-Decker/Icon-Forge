@@ -19,7 +19,6 @@ public class IconForgeWindow : EditorWindow
     private Texture2D previewTexture;
     private float iconFillPercent = 70f;
     private bool showDebugSection = false;
-    private string exportFileName = "IconForge_Icon.png";
     private readonly int[] resolutionValues =
     {
         64,
@@ -188,13 +187,6 @@ public class IconForgeWindow : EditorWindow
         // [UI] Resolution
         // ======================
         selectedResolutionIndex = EditorGUILayout.Popup("Export Resolution", selectedResolutionIndex, resolutionLabels);
-        
-        // ======================
-        // [UI] File naming
-        // ======================
-        exportFileName = EditorGUILayout.TextField("Export File Name", exportFileName);
-
-        EditorGUILayout.Space(10);
 
         // ============================================================
         // ITEM TYPE PRESET
@@ -383,19 +375,12 @@ public class IconForgeWindow : EditorWindow
             Directory.CreateDirectory(exportFolder);
         }
 
-        string safeFileName = exportFileName;
+        string baseFileName = IconFileNamingUtility.GetSafeFileName(sourceObject.name);
 
-        if (string.IsNullOrWhiteSpace(safeFileName))
-        {
-            safeFileName = "IconForge_Icon.png";
-        }
-
-        if (!safeFileName.EndsWith(".png"))
-        {
-            safeFileName += ".png";
-        }
-
-        string fullPath = Path.Combine(exportFolder, safeFileName);
+        string fullPath = IconFileNamingUtility.GetUniqueFilePath(
+            exportFolder,
+            baseFileName,
+            "png");
 
         byte[] pngData = exportTexture.EncodeToPNG();
         File.WriteAllBytes(fullPath, pngData);
@@ -421,7 +406,6 @@ public class IconForgeWindow : EditorWindow
             }
 
             sourceObject = batchObject;
-            exportFileName = $"{batchObject.name}.png";
 
             ExportPreviewPng();
         }
