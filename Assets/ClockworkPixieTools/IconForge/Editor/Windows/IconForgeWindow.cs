@@ -354,12 +354,12 @@ public class IconForgeWindow : EditorWindow
         Repaint();
     }
 
-    private void ExportPreviewPng()
+    private string ExportPreviewPng()
     {
         if (sourceObject == null)
         {
             Debug.LogWarning("Icon Forge: No source object selected for export.");
-            return;
+            return null;
         }
 
         int exportResolution = resolutionValues[selectedResolutionIndex];
@@ -377,7 +377,7 @@ public class IconForgeWindow : EditorWindow
         if (exportTexture == null)
         {
             Debug.LogWarning("Icon Forge: Could not generate export texture.");
-            return;
+            return null;
         }
 
         string exportFolder = "Assets/GeneratedIcons";
@@ -405,6 +405,8 @@ public class IconForgeWindow : EditorWindow
         AssetDatabase.Refresh();
 
         Debug.Log($"Icon Forge: Exported {exportResolution}x{exportResolution} PNG to {fullPath}");
+
+        return fullPath;
     }
 
     private void ExportBatchPngs()
@@ -415,6 +417,8 @@ public class IconForgeWindow : EditorWindow
             return;
         }
 
+        List<string> exportedIconPaths = new List<string>();
+
         foreach (GameObject batchObject in batchObjects)
         {
             if (batchObject == null)
@@ -424,7 +428,29 @@ public class IconForgeWindow : EditorWindow
 
             sourceObject = batchObject;
 
-            ExportPreviewPng();
+            string exportedPath = ExportPreviewPng();
+
+            if (!string.IsNullOrEmpty(exportedPath))
+            {
+                exportedIconPaths.Add(exportedPath);
+            }
+        }
+
+        if (exportedIconPaths.Count > 0)
+        {
+            string exportFolder = "Assets/GeneratedIcons";
+
+            if (outputSettings != null && !string.IsNullOrWhiteSpace(outputSettings.exportFolder))
+            {
+                exportFolder = outputSettings.exportFolder;
+            }
+
+            int exportResolution = resolutionValues[selectedResolutionIndex];
+
+            IconContactSheetUtility.CreateContactSheet(
+                exportedIconPaths,
+                exportFolder,
+                exportResolution);
         }
 
         AssetDatabase.Refresh();
