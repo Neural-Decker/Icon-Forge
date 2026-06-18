@@ -161,14 +161,6 @@ public static class IconPreviewRigBuilder
 
         float requiredSize = Mathf.Max(requiredSizeByHeight, requiredSizeByWidth);
 
-        Debug.Log(
-            $"Icon Forge Projection Debug | " +
-            $"Width: {cameraSpaceWidth:F3}, " +
-            $"Height: {cameraSpaceHeight:F3}, " +
-            $"SizeByWidth: {requiredSizeByWidth:F3}, " +
-            $"SizeByHeight: {requiredSizeByHeight:F3}, " +
-            $"FinalRequiredSize: {requiredSize:F3}");
-
         return (requiredSize / fillPercent) * FrameSafePaddingMultiplier;
     }
 

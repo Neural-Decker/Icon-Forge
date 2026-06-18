@@ -43,6 +43,7 @@ public class IconForgeWindow : EditorWindow
     private IconCameraPreset cameraPreset = IconCameraPreset.Isometric;
     private IconItemTypePreset itemTypePreset = IconItemTypePreset.Generic;
     private IconLightingProfile lightingProfile = IconLightingProfile.Neutral;
+    private IconForgeProfile activeProfile;
 
     private void OnGUI()
     {
@@ -71,8 +72,22 @@ public class IconForgeWindow : EditorWindow
         // ====================
         // [UI] Profile
         // ====================
-        profile = (IconForgeProfile)EditorGUILayout.ObjectField("Profile", profile, typeof(IconForgeProfile), false);
-        
+        activeProfile = (IconForgeProfile) EditorGUILayout.ObjectField(
+            "Profile",
+            activeProfile,
+            typeof(IconForgeProfile),
+            false);
+
+        if (GUILayout.Button("Load Profile"))
+        {
+            LoadProfile();
+        }
+
+        if (GUILayout.Button("Save Current Settings To Profile"))
+        {
+            SaveCurrentSettingsToProfile();
+        }
+
         EditorGUILayout.Space(10);
 
         // ====================
@@ -567,5 +582,65 @@ public class IconForgeWindow : EditorWindow
                 iconFillPercent = 75f;
                 break;
         }
+    }
+
+    private void LoadProfile()
+    {
+        if (activeProfile == null)
+        {
+            return;
+        }
+
+        itemTypePreset = activeProfile.itemType;
+
+        cameraPreset = activeProfile.cameraPreset;
+
+        lightingProfile = activeProfile.lightingProfile;
+
+        iconFillPercent = activeProfile.fillPercent;
+
+        selectedResolutionIndex = 0;
+
+        for (int i = 0; i < resolutionValues.Length; i++)
+        {
+            if (resolutionValues[i] == activeProfile.resolution)
+            {
+                selectedResolutionIndex = i;
+                break;
+            }
+        }
+
+        useTransparentBackground =
+            activeProfile.transparentBackground;
+
+        backgroundColor =
+            activeProfile.backgroundColor;
+
+        GeneratePreview();
+
+        Repaint();
+    }
+
+    private void SaveCurrentSettingsToProfile()
+    {
+        if (activeProfile == null)
+        {
+            Debug.LogWarning("Icon Forge: No profile selected to save to.");
+            return;
+        }
+
+        activeProfile.itemType = itemTypePreset;
+        activeProfile.cameraPreset = cameraPreset;
+        activeProfile.lightingProfile = lightingProfile;
+        activeProfile.fillPercent = iconFillPercent;
+        activeProfile.resolution = resolutionValues[selectedResolutionIndex];
+        activeProfile.transparentBackground = useTransparentBackground;
+        activeProfile.backgroundColor = backgroundColor;
+
+        EditorUtility.SetDirty(activeProfile);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        Debug.Log($"Icon Forge: Saved settings to profile '{activeProfile.name}'.");
     }
 }
