@@ -6,16 +6,17 @@ using UnityEngine;
 public class IconForgeWindow : EditorWindow
 {
     [MenuItem("Tools/Clockwork Pixie/Icon Forge")]
+
     public static void ShowWindow()
     {
         GetWindow<IconForgeWindow>("Icon Forge");
     }
 
+    private Texture2D logoTexture;
+    private Texture2D footprintsTexture;
     private GameObject sourceObject;
     private IconForgeProfile profile;
     private IconOutputSettings outputSettings;
-    private Texture2D logoTexture;
-    private Texture2D footprintsTexture;
     private Texture2D previewTexture;
     private float iconFillPercent = 70f;
     private bool showDebugSection = false;
@@ -44,12 +45,20 @@ public class IconForgeWindow : EditorWindow
     private IconLightingProfile lightingProfile = IconLightingProfile.Neutral;
     private IconForgeProfile activeProfile;
 
+    private void OnEnable()
+    {
+        logoTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(
+            "Assets/ClockworkPixieTools/IconForge/Editor/UI/Textures/Logo_Symbol.png");
+
+        footprintsTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(
+            "Assets/ClockworkPixieTools/IconForge/Editor/UI/Textures/Footprints.png");
+    }
+
     private void OnGUI()
     {
-        // TODO: low opasity footprints in the Background
         // Menu section - Title
-        // TODO: add Icon here, followed by Lable text
-        GUILayout.Label("Clockwork Pixie Icon Forge", EditorStyles.boldLabel);
+        DrawBackgroundBranding();
+        DrawHeader();
 
         EditorGUILayout.Space(10);
 
@@ -320,6 +329,8 @@ public class IconForgeWindow : EditorWindow
         }
 
         GUI.enabled = true;
+
+        DrawFooterLogo();
     }
 
     private void GeneratePreview()
@@ -713,5 +724,84 @@ public class IconForgeWindow : EditorWindow
         }
 
         return addedCount;
+    }
+
+    private void DrawBackgroundBranding()
+    {
+        if (footprintsTexture == null)
+        {
+            return;
+        }
+
+        float footprintWidth = 220f;
+        float footprintHeight = 440f;
+
+        Rect footprintRect = new Rect(
+            position.width - footprintWidth - 12f,
+            position.height - footprintHeight - 12f,
+            footprintWidth,
+            footprintHeight);
+
+        Color previousColor = GUI.color;
+
+        GUI.color = new Color(1f, 1f, 1f, 0.06f);
+
+        GUI.DrawTexture(
+            footprintRect,
+            footprintsTexture,
+            ScaleMode.ScaleToFit,
+            true);
+
+        GUI.color = previousColor;
+    }
+
+    private void DrawHeader()
+    {
+        GUILayout.Space(6);
+
+        GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel);
+        titleStyle.fontSize = 16;
+        titleStyle.alignment = TextAnchor.MiddleCenter;
+
+        GUILayout.Label(
+            "Clockwork Pixie Icon Forge",
+            titleStyle);
+    }
+
+    private void DrawFooterLogo()
+    {
+        if (logoTexture == null)
+        {
+            return;
+        }
+
+        GUILayout.Space(10);
+
+        Rect logoRect = GUILayoutUtility.GetRect(
+            120,
+            120,
+            GUILayout.ExpandWidth(true));
+
+        logoRect.width = 120;
+        logoRect.height = 120;
+        logoRect.x = (position.width - logoRect.width) * 0.5f;
+
+        Color previousColor = GUI.color;
+
+        GUI.color = new Color(
+            1f,
+            1f,
+            1f,
+            0.65f);
+
+        GUI.DrawTexture(
+            logoRect,
+            logoTexture,
+            ScaleMode.ScaleToFit,
+            true);
+
+        GUI.color = previousColor;
+
+        GUILayout.Space(6);
     }
 }
