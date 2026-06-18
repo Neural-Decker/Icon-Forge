@@ -108,6 +108,12 @@ public class IconForgeWindow : EditorWindow
 
         GUI.enabled = true;
 
+        // Button - Add selected project assets to Batch
+        if (GUILayout.Button("Add Selected Project Assets to Batch"))
+        {
+            AddSelectedProjectAssetsToBatch();
+        }
+
         // Button - Add multiple objects from hierarchy 
         if (GUILayout.Button("Add Selected Hierarchy Objects to Batch"))
         {
@@ -626,5 +632,86 @@ public class IconForgeWindow : EditorWindow
         AssetDatabase.Refresh();
 
         Debug.Log($"Icon Forge: Saved settings to profile '{activeProfile.name}'.");
+    }
+
+    private void AddSelectedProjectAssetsToBatch()
+    {
+        Object[] selectedAssets = Selection.objects;
+
+        if (selectedAssets == null || selectedAssets.Length == 0)
+        {
+            Debug.LogWarning("Icon Forge: No project assets selected.");
+            return;
+        }
+
+        int addedCount = 0;
+
+        foreach (Object selectedAsset in selectedAssets)
+        {
+            if (selectedAsset == null)
+            {
+                continue;
+            }
+
+            string assetPath = AssetDatabase.GetAssetPath(selectedAsset);
+            Debug.Log($"Icon Forge Debug | Name: {selectedAsset.name} | Path: {assetPath}");
+
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                continue;
+            }
+
+            if (AssetDatabase.IsValidFolder(assetPath))
+            {
+                addedCount += AddGameObjectsFromFolder(assetPath);
+                Debug.Log($"Icon Forge Debug | Folder detected: {assetPath}");
+                continue;
+            }
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+
+            if (prefab != null)
+            {
+                if (!batchObjects.Contains(prefab))
+                {
+                    batchObjects.Add(prefab);
+                    addedCount++;
+                }
+            }
+        }
+
+        Debug.Log($"Icon Forge: Added {addedCount} project assets to batch.");
+    }
+
+    private int AddGameObjectsFromFolder(string folderPath)
+    {
+        int addedCount = 0;
+
+        string[] assetGuids = AssetDatabase.FindAssets(
+            "t:GameObject",
+            new[] { folderPath });
+
+        foreach (string assetGuid in assetGuids)
+        {
+            string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+
+            GameObject assetObject =
+                AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+
+            if (assetObject == null)
+            {
+                continue;
+            }
+
+            if (batchObjects.Contains(assetObject))
+            {
+                continue;
+            }
+
+            batchObjects.Add(assetObject);
+            addedCount++;
+        }
+
+        return addedCount;
     }
 }
