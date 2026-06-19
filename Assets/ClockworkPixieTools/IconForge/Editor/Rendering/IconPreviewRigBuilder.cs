@@ -13,7 +13,8 @@ public static class IconPreviewRigBuilder
         Color backgroundColor,
         IconCameraPreset cameraPreset,
         IconLightingProfile lightingProfile,
-        Vector3 objectRotationOffset)
+        Vector3 objectRotationOffset,
+        Vector2 objectCompositionOffset)
     {
         if (sourceObject == null)
         {
@@ -35,6 +36,10 @@ public static class IconPreviewRigBuilder
         Bounds bounds = ObjectBoundsAnalyzer.CalculateRendererBounds(previewObject);
 
         Camera camera = CreateCamera(bounds, fillPercent, backgroundColor, cameraPreset);
+        ApplyCompositionOffset(
+            previewObject,
+            camera,
+            objectCompositionOffset);
         camera.transform.SetParent(root.transform);
 
         //Lighting
@@ -75,7 +80,7 @@ public static class IconPreviewRigBuilder
         camera.transform.position = bounds.center + cameraDirection * 50f;
         camera.transform.LookAt(bounds.center);
 
-        fillPercent = Mathf.Clamp(fillPercent, 0.1f, 1f);
+        fillPercent = Mathf.Clamp(fillPercent, 0.1f, 1.75f);
         camera.orthographicSize =
             CalculateCameraAlignedOrthographicSize(camera, bounds, fillPercent);
 
@@ -134,7 +139,10 @@ public static class IconPreviewRigBuilder
         return light;
     }
 
-    private static float CalculateCameraAlignedOrthographicSize(Camera camera, Bounds bounds, float fillPercent)
+    private static float CalculateCameraAlignedOrthographicSize(
+        Camera camera, 
+        Bounds bounds, 
+        float fillPercent)
     {
         Vector3[] corners = GetBoundsCorners(bounds);
 
@@ -212,5 +220,25 @@ public static class IconPreviewRigBuilder
             default:
                 return new Vector3(2.5f, 2f, 2.5f);
         }
+    }
+
+    private static void ApplyCompositionOffset(
+    GameObject previewObject,
+    Camera camera,
+    Vector2 compositionOffset)
+    {
+        if (compositionOffset == Vector2.zero)
+        {
+            return;
+        }
+
+        float verticalViewSize = camera.orthographicSize * 2f;
+        float horizontalViewSize = verticalViewSize * camera.aspect;
+
+        Vector3 worldOffset =
+            camera.transform.right * compositionOffset.x * horizontalViewSize
+            + camera.transform.up * compositionOffset.y * verticalViewSize;
+
+        previewObject.transform.position += worldOffset;
     }
 }

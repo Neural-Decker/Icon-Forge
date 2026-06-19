@@ -10,7 +10,8 @@ public static class IconRenderCapture
         Color backgroundColor,
         IconCameraPreset cameraPreset,
         IconLightingProfile lightingProfile,
-        Vector3 objectRotationOffset)
+        Vector3 objectRotationOffset,
+        Vector2 objectCompositionOffset)
     {
         IconPreviewRig rig = IconPreviewRigBuilder.Build(
             sourceObject,
@@ -18,7 +19,8 @@ public static class IconRenderCapture
             backgroundColor,
             cameraPreset,
             lightingProfile,
-            objectRotationOffset);
+            objectRotationOffset,
+            objectCompositionOffset);
 
         if (rig == null)
         {

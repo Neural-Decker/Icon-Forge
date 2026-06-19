@@ -10,7 +10,8 @@ public static class IconForgeDebugRig
         Color backgroundColor,
         IconCameraPreset cameraPreset,
         IconLightingProfile lightingProfile,
-        Vector3 objectRotationOffset)
+        Vector3 objectRotationOffset,
+        Vector2 objectCompositionOffset)
     {
         DestroyDebugRig();
 
@@ -20,7 +21,8 @@ public static class IconForgeDebugRig
             backgroundColor,
             cameraPreset,
             lightingProfile,
-            objectRotationOffset);
+            objectRotationOffset,
+            objectCompositionOffset);
 
         if (rig == null)
         {
