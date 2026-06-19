@@ -9,7 +9,8 @@ public static class IconForgeDebugRig
         float fillPercent,
         Color backgroundColor,
         IconCameraPreset cameraPreset,
-        IconLightingProfile lightingProfile)
+        IconLightingProfile lightingProfile,
+        Vector3 objectRotationOffset)
     {
         DestroyDebugRig();
 
@@ -18,7 +19,8 @@ public static class IconForgeDebugRig
             fillPercent,
             backgroundColor,
             cameraPreset,
-            lightingProfile);
+            lightingProfile,
+            objectRotationOffset);
 
         if (rig == null)
         {

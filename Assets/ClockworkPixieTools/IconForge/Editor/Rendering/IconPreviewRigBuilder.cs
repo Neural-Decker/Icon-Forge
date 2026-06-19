@@ -12,7 +12,8 @@ public static class IconPreviewRigBuilder
         float fillPercent,
         Color backgroundColor,
         IconCameraPreset cameraPreset,
-        IconLightingProfile lightingProfile)
+        IconLightingProfile lightingProfile,
+        Vector3 objectRotationOffset)
     {
         if (sourceObject == null)
         {
@@ -27,6 +28,7 @@ public static class IconPreviewRigBuilder
         previewObject.name = "Icon Forge Preview Object";
         previewObject.transform.localPosition = Vector3.zero;
         previewObject.transform.localRotation = Quaternion.identity;
+        previewObject.transform.rotation = Quaternion.Euler(objectRotationOffset);
 
         SetLayerRecursively(root, PreviewLayer);
 

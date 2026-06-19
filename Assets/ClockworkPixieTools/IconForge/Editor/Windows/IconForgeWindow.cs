@@ -44,6 +44,7 @@ public class IconForgeWindow : EditorWindow
     private IconItemTypePreset itemTypePreset = IconItemTypePreset.Generic;
     private IconLightingProfile lightingProfile = IconLightingProfile.Neutral;
     private IconForgeProfile activeProfile;
+    private Vector3 objectRotationOffset = Vector3.zero;
 
     private void OnEnable()
     {
@@ -264,6 +265,45 @@ public class IconForgeWindow : EditorWindow
 
         EditorGUILayout.Space(10);
 
+        // ============================================================
+        // OBJECT ROTATION
+        // ============================================================
+
+        EditorGUI.BeginChangeCheck();
+
+        EditorGUILayout.LabelField("Object Rotation", EditorStyles.boldLabel);
+
+        objectRotationOffset.x = EditorGUILayout.Slider(
+            "Rotation X",
+            objectRotationOffset.x,
+            -180f,
+            180f);
+
+        objectRotationOffset.y = EditorGUILayout.Slider(
+            "Rotation Y",
+            objectRotationOffset.y,
+            -180f,
+            180f);
+
+        objectRotationOffset.z = EditorGUILayout.Slider(
+            "Rotation Z",
+            objectRotationOffset.z,
+            -180f,
+            180f);
+
+        if (GUILayout.Button("Reset Rotation"))
+        {
+            objectRotationOffset = Vector3.zero;
+            GeneratePreview();
+        }
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            GeneratePreview();
+        }
+
+        EditorGUILayout.Space(10);
+
         // ======================
         // [UI] Debuging
         // ======================
@@ -285,7 +325,8 @@ public class IconForgeWindow : EditorWindow
                     iconFillPercent / 100f,
                     renderBackgroundColor,
                     cameraPreset,
-                    lightingProfile);
+                    lightingProfile,
+                    objectRotationOffset);
             }
 
             GUI.enabled = true;
@@ -349,7 +390,8 @@ public class IconForgeWindow : EditorWindow
             256,
             renderBackgroundColor,
             cameraPreset,
-            lightingProfile);
+            lightingProfile,
+            objectRotationOffset);
 
         Repaint();
     }
@@ -372,7 +414,8 @@ public class IconForgeWindow : EditorWindow
             exportResolution,
             renderBackgroundColor,
             cameraPreset,
-            lightingProfile);
+            lightingProfile,
+            objectRotationOffset);
 
         if (exportTexture == null)
         {
@@ -577,36 +620,43 @@ public class IconForgeWindow : EditorWindow
             case IconItemTypePreset.Generic:
                 cameraPreset = IconCameraPreset.Isometric;
                 iconFillPercent = 70f;
+                objectRotationOffset = Vector3.zero;
                 break;
 
             case IconItemTypePreset.Weapon:
                 cameraPreset = IconCameraPreset.Isometric;
                 iconFillPercent = 80f;
+                objectRotationOffset = new Vector3(-62f, 0f, 0f);
                 break;
 
             case IconItemTypePreset.HeadFocus:
                 cameraPreset = IconCameraPreset.Isometric;
                 iconFillPercent = 90f;
+                objectRotationOffset = new Vector3(-62f, 0f, 0f);
                 break;
 
             case IconItemTypePreset.Shield:
                 cameraPreset = IconCameraPreset.Front;
                 iconFillPercent = 80f;
+                objectRotationOffset = Vector3.zero;
                 break;
 
             case IconItemTypePreset.Potion:
                 cameraPreset = IconCameraPreset.Isometric;
                 iconFillPercent = 75f;
+                objectRotationOffset = Vector3.zero;
                 break;
 
             case IconItemTypePreset.Chest:
                 cameraPreset = IconCameraPreset.Isometric;
                 iconFillPercent = 80f;
+                objectRotationOffset = Vector3.zero;
                 break;
 
             case IconItemTypePreset.Resource:
                 cameraPreset = IconCameraPreset.Isometric;
                 iconFillPercent = 75f;
+                objectRotationOffset = Vector3.zero;
                 break;
         }
     }
