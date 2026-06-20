@@ -38,7 +38,6 @@ public class IconForgeWindow : EditorWindow
     private Color backgroundColor = new Color(0.08f, 0.08f, 0.08f, 1f);
     private int selectedResolutionIndex = 2;
     private readonly List<GameObject> batchObjects = new List<GameObject>();
-    private bool showBatchList = true;
     private Vector2 batchListScrollPosition;
     private IconCameraPreset cameraPreset = IconCameraPreset.Isometric;
     private IconItemTypePreset itemTypePreset = IconItemTypePreset.Generic;
@@ -46,6 +45,7 @@ public class IconForgeWindow : EditorWindow
     private IconForgeProfile activeProfile;
     private Vector3 objectRotationOffset = Vector3.zero;
     private Vector2 objectCompositionOffset = Vector2.zero;
+    private Vector2 settingsScrollPosition;
 
     private void OnEnable()
     {
@@ -58,35 +58,65 @@ public class IconForgeWindow : EditorWindow
 
     private void OnGUI()
     {
-        // Menu section - Title
         DrawBackgroundBranding();
-        DrawHeader();
 
-        EditorGUILayout.Space(10);
+        float fixedBottomHeight = 480f;
 
-        // ====================
-        // [UI] Source
-        // ====================
+        settingsScrollPosition = EditorGUILayout.BeginScrollView(
+            settingsScrollPosition,
+            GUILayout.Height(position.height - fixedBottomHeight));
+
+        DrawSourceSection();
+        DrawProfileSection();
+        DrawBatchSection();
+        DrawOutputSection();
+        DrawRenderingSection();
+        DrawDebugSection();
+
+        EditorGUILayout.EndScrollView();
+
+        EditorGUILayout.Space(6);
+
+        DrawPreviewSection();
+        DrawExportSection();
+        DrawFooterLogo();
+    }
+
+    private void DrawSourceSection()
+    {
+        EditorGUILayout.LabelField("Source", EditorStyles.boldLabel);
+
         EditorGUI.BeginChangeCheck();
-        sourceObject = (GameObject)EditorGUILayout.ObjectField("Source Object", sourceObject, typeof(GameObject), true);
+
+        sourceObject = (GameObject)EditorGUILayout.ObjectField(
+            "Source Object",
+            sourceObject,
+            typeof(GameObject),
+            true);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            GeneratePreview();
+        }
+
+        EditorGUILayout.HelpBox(
+            "Select a prefab or scene object to prepare for icon generation.",
+            MessageType.Info);
 
         EditorGUILayout.Space(10);
+    }
 
-        // ====================
-        // [UI] Help Box
-        // ====================
-        EditorGUILayout.HelpBox("Select a prefab or scene object to prepare for icon generation.", MessageType.Info);
+    private void DrawProfileSection()
+    {
+        EditorGUILayout.LabelField("Profile", EditorStyles.boldLabel);
 
-        EditorGUILayout.Space(10);
-
-        // ====================
-        // [UI] Profile
-        // ====================
-        activeProfile = (IconForgeProfile) EditorGUILayout.ObjectField(
+        activeProfile = (IconForgeProfile)EditorGUILayout.ObjectField(
             "Profile",
             activeProfile,
             typeof(IconForgeProfile),
             false);
+
+        EditorGUILayout.BeginHorizontal();
 
         if (GUILayout.Button("Load Profile"))
         {
@@ -98,305 +128,149 @@ public class IconForgeWindow : EditorWindow
             SaveCurrentSettingsToProfile();
         }
 
+        EditorGUILayout.EndHorizontal();
+
         EditorGUILayout.Space(10);
+    }
 
-        // ====================
-        // [UI] Batch processing
-        // ====================
-        EditorGUILayout.LabelField("Batch Processing", EditorStyles.boldLabel);
-        
-        // Enable
-        GUI.enabled = sourceObject != null;
+    private void DrawBatchSection()
+    {
+        EditorGUILayout.LabelField(
+            "Batch Processing",
+            EditorStyles.boldLabel);
 
-        // Button - Add single object to batchlist (Only active when object selected in sorce object field)
-        if (GUILayout.Button("Add Source Object to Batch"))
+        EditorGUILayout.LabelField($"Batch Count: {batchObjects.Count}");
+
+        if (GUILayout.Button("Add Source Object To Batch"))
         {
-            if (!batchObjects.Contains(sourceObject))
+            if (sourceObject != null &&
+                !batchObjects.Contains(sourceObject))
             {
                 batchObjects.Add(sourceObject);
             }
         }
 
-        GUI.enabled = true;
-
-        // Button - Add selected project assets to Batch
-        if (GUILayout.Button("Add Selected Project Assets to Batch"))
+        if (GUILayout.Button("Add Selected Project Assets To Batch"))
         {
             AddSelectedProjectAssetsToBatch();
         }
 
-        // Button - Add multiple objects from hierarchy 
-        if (GUILayout.Button("Add Selected Hierarchy Objects to Batch"))
-        {
-            AddSelectedHierarchyObjectsToBatch();
-        }
+        EditorGUILayout.BeginHorizontal();
 
-        // Button - Clear batch list
-        if (GUILayout.Button("Clear Batch List"))
+        if (GUILayout.Button("Clear Batch"))
         {
             batchObjects.Clear();
         }
 
-        // Batch counter
-        EditorGUILayout.LabelField($"Batch Count: {batchObjects.Count}");
+        EditorGUILayout.EndHorizontal();
 
-        // Display list of objects in batch list
-        showBatchList = EditorGUILayout.Foldout(showBatchList, "Batch List", true);
+        EditorGUILayout.Space(5);
 
-        if (showBatchList)
+        if (batchObjects.Count > 0)
         {
-            if (batchObjects.Count == 0)
-            {
-                EditorGUILayout.HelpBox(
-                    "Batch list is empty. Add source objects or selected hierarchy objects.",
-                    MessageType.Info);
-            } else
-            {
-                float rowHeight = EditorGUIUtility.singleLineHeight + 4f;
-                float maxVisibleRows = 10f;
-                float scrollHeight = Mathf.Min(batchObjects.Count, maxVisibleRows) * rowHeight;
+            EditorGUILayout.BeginVertical("box");
 
-                batchListScrollPosition = EditorGUILayout.BeginScrollView(
-                    batchListScrollPosition,
-                    GUILayout.Height(scrollHeight));
+            for (int i = 0; i < batchObjects.Count; i++)
+            {
+                EditorGUILayout.BeginHorizontal();
 
-                for (int i = 0; i < batchObjects.Count; i++)
+                batchObjects[i] = (GameObject)EditorGUILayout.ObjectField(
+                    batchObjects[i],
+                    typeof(GameObject),
+                    false);
+
+                if (GUILayout.Button("X", GUILayout.Width(25)))
                 {
-                    EditorGUILayout.BeginHorizontal();
-
-                    batchObjects[i] = (GameObject)EditorGUILayout.ObjectField(
-                        batchObjects[i],
-                        typeof(GameObject),
-                        false);
-
-                    if (GUILayout.Button("X", GUILayout.Width(24)))
-                    {
-                        batchObjects.RemoveAt(i);
-                        break;
-                    }
-
-                    EditorGUILayout.EndHorizontal();
+                    batchObjects.RemoveAt(i);
+                    i--;
                 }
 
-                EditorGUILayout.EndScrollView();
+                EditorGUILayout.EndHorizontal();
             }
+
+            EditorGUILayout.EndVertical();
         }
 
         EditorGUILayout.Space(10);
+    }
 
-        // ======================
-        // [UI] Output Settings
-        // ======================
-        outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField("Output Settings", outputSettings, typeof(IconOutputSettings), false);
-        EditorGUILayout.Space(10);
+    private void DrawDebugSection()
+    {
+        showDebugSection = EditorGUILayout.Foldout(
+            showDebugSection,
+            "Debug",
+            true);
 
-        // ======================
-        // [UI] Background Transperent and Color
-        // ======================
-        useTransparentBackground = EditorGUILayout.Toggle("Transparent Background", useTransparentBackground);
-
-        if (!useTransparentBackground)
+        if (!showDebugSection)
         {
-            backgroundColor = EditorGUILayout.ColorField("Background Color", backgroundColor);
-        }
-        
-        // ======================
-        // [UI] Resolution
-        // ======================
-        selectedResolutionIndex = EditorGUILayout.Popup("Export Resolution", selectedResolutionIndex, resolutionLabels);
-
-        // ============================================================
-        // ITEM TYPE PRESET
-        // ============================================================
-
-        EditorGUI.BeginChangeCheck();
-
-        itemTypePreset = (IconItemTypePreset)EditorGUILayout.EnumPopup(
-            "Item Type",
-            itemTypePreset);
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            ApplyItemTypePreset();
-            GeneratePreview();
+            EditorGUILayout.Space(5);
+            return;
         }
 
-        // ============================================================
-        // CAMERA
-        // ============================================================
-
-        EditorGUI.BeginChangeCheck();
-
-        cameraPreset = (IconCameraPreset)EditorGUILayout.EnumPopup(
-            "Camera Preset",
-            cameraPreset);
-
-        if (EditorGUI.EndChangeCheck())
+        if (GUILayout.Button("Create Debug Rig"))
         {
-            GeneratePreview();
-        }
-
-        // ============================================================
-        // LIGHT
-        // ============================================================
-        EditorGUI.BeginChangeCheck();
-
-        lightingProfile =
-            (IconLightingProfile)EditorGUILayout.EnumPopup(
-                "Lighting Profile",
-                lightingProfile);
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            GeneratePreview();
-        }
-
-        // ======================
-        // [UI] Framing
-        // ======================
-        EditorGUILayout.LabelField("Framing", EditorStyles.boldLabel);
-
-        iconFillPercent = EditorGUILayout.Slider("Icon Fill", iconFillPercent, 40f, 175f);
-        iconFillPercent = Mathf.Round(iconFillPercent / 5f) * 5f;
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            GeneratePreview();
-        }
-
-        EditorGUILayout.Space(10);
-
-        // ============================================================
-        // OBJECT ROTATION
-        // ============================================================
-
-        EditorGUI.BeginChangeCheck();
-
-        EditorGUILayout.LabelField("Object Rotation", EditorStyles.boldLabel);
-
-        objectRotationOffset.x = EditorGUILayout.Slider(
-            "Rotation X",
-            objectRotationOffset.x,
-            -180f,
-            180f);
-
-        objectRotationOffset.y = EditorGUILayout.Slider(
-            "Rotation Y",
-            objectRotationOffset.y,
-            -180f,
-            180f);
-
-        objectRotationOffset.z = EditorGUILayout.Slider(
-            "Rotation Z",
-            objectRotationOffset.z,
-            -180f,
-            180f);
-
-        if (GUILayout.Button("Reset Rotation"))
-        {
-            objectRotationOffset = Vector3.zero;
-            GeneratePreview();
-        }
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            GeneratePreview();
-        }
-
-        EditorGUILayout.Space(10);
-
-        // ============================================================
-        // OBJECT OFFSET
-        // ============================================================
-
-        EditorGUI.BeginChangeCheck();
-
-        EditorGUILayout.LabelField("Object Offset", EditorStyles.boldLabel);
-
-        objectCompositionOffset.x = EditorGUILayout.Slider(
-            "Offset X",
-            objectCompositionOffset.x,
-            -1f,
-            1f);
-
-        objectCompositionOffset.y = EditorGUILayout.Slider(
-            "Offset Y",
-            objectCompositionOffset.y,
-            -1f,
-            1f);
-
-        if (GUILayout.Button("Reset Offset"))
-        {
-            objectCompositionOffset = Vector2.zero;
-            GeneratePreview();
-        }
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            GeneratePreview();
-        }
-
-        EditorGUILayout.Space(10);
-
-        // ======================
-        // [UI] Debuging
-        // ======================
-        showDebugSection = EditorGUILayout.Foldout(showDebugSection, "Debug", true);
-
-        if (showDebugSection)
-        {
-            EditorGUI.indentLevel++;
-
-            GUI.enabled = sourceObject != null;
-
-            // Button - create rig
-            if (GUILayout.Button("Create Debug Rig"))
+            if (sourceObject == null)
             {
-                Color renderBackgroundColor = useTransparentBackground ? new Color(0f, 0f, 0f, 0f) : backgroundColor;
-
-                IconForgeDebugRig.CreateDebugRig(
-                    sourceObject,
-                    iconFillPercent / 100f,
-                    renderBackgroundColor,
-                    cameraPreset,
-                    lightingProfile,
-                    objectRotationOffset,
-                    objectCompositionOffset);
+                Debug.LogWarning("Icon Forge: No source object selected.");
+                return;
             }
 
-            GUI.enabled = true;
-
-            // Button - Destroy rig
-            if (GUILayout.Button("Destroy Debug Rig"))
-            {
-                IconForgeDebugRig.DestroyDebugRig();
-            }
-
-            EditorGUI.indentLevel--;
+            IconForgeDebugRig.CreateDebugRig(
+                sourceObject,
+                iconFillPercent / 100f,
+                backgroundColor,
+                cameraPreset,
+                lightingProfile,
+                objectRotationOffset,
+                objectCompositionOffset);
         }
 
         EditorGUILayout.Space(10);
+    }
 
-        // ========================
-        // [UI] Peview section
-        // ========================
-        DrawPreviewPanel();
+    private void DrawPreviewSection()
+    {
+        EditorGUILayout.LabelField("Preview", EditorStyles.boldLabel);
 
-        EditorGUILayout.Space(10);
-
-        // ========================
-        // [UI] Buttons
-        // ========================
-        GUI.enabled = sourceObject != null;
-
-        if (GUILayout.Button("Generate Preview"))
+        if (previewTexture == null)
         {
-            GeneratePreview();
+            EditorGUILayout.HelpBox(
+                "No preview generated yet.",
+                MessageType.Info);
+
+            return;
         }
+
+        EditorGUILayout.BeginHorizontal();
+
+        GUILayout.FlexibleSpace();
+
+        DrawTexturePreview(
+            previewTexture,
+            "Detail Preview",
+            256);
+
+        GUILayout.Space(12);
+
+        DrawTexturePreview(
+            previewTexture,
+            "64 x 64",
+            64);
+
+        GUILayout.FlexibleSpace();
+
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.Space(10);
+    }
+
+    private void DrawExportSection()
+    {
         if (GUILayout.Button("Export PNG"))
         {
             ExportPreviewPng();
         }
+
         GUI.enabled = batchObjects.Count > 0;
 
         if (GUILayout.Button("Export Batch PNGs"))
@@ -405,8 +279,6 @@ public class IconForgeWindow : EditorWindow
         }
 
         GUI.enabled = true;
-
-        DrawFooterLogo();
     }
 
     private void GeneratePreview()
@@ -650,6 +522,159 @@ public class IconForgeWindow : EditorWindow
         EditorGUILayout.EndVertical();
     }
 
+    private void DrawOutputSection()
+    {
+        EditorGUILayout.LabelField("Output Settings", EditorStyles.boldLabel);
+
+        outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField(
+            "Output Settings",
+            outputSettings,
+            typeof(IconOutputSettings),
+            false);
+
+        EditorGUI.BeginChangeCheck();
+
+        useTransparentBackground = EditorGUILayout.Toggle(
+            "Transparent Background",
+            useTransparentBackground);
+
+        if (!useTransparentBackground)
+        {
+            backgroundColor = EditorGUILayout.ColorField(
+                "Background Color",
+                backgroundColor);
+        }
+
+        selectedResolutionIndex = EditorGUILayout.Popup(
+            "Export Resolution",
+            selectedResolutionIndex,
+            resolutionLabels);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            GeneratePreview();
+        }
+
+        EditorGUILayout.Space(10);
+    }
+
+    private void DrawRenderingSection()
+    {
+        EditorGUILayout.LabelField("Rendering & Composition", EditorStyles.boldLabel);
+
+        EditorGUI.BeginChangeCheck();
+
+        itemTypePreset = (IconItemTypePreset)EditorGUILayout.EnumPopup(
+            "Item Type",
+            itemTypePreset);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            ApplyItemTypePreset();
+            GeneratePreview();
+        }
+
+        EditorGUI.BeginChangeCheck();
+
+        cameraPreset = (IconCameraPreset)EditorGUILayout.EnumPopup(
+            "Camera Preset",
+            cameraPreset);
+
+        lightingProfile = (IconLightingProfile)EditorGUILayout.EnumPopup(
+            "Lighting Profile",
+            lightingProfile);
+
+        iconFillPercent = EditorGUILayout.Slider(
+            "Icon Fill",
+            iconFillPercent,
+            10f,
+            175f);
+
+        objectRotationOffset.x = EditorGUILayout.Slider(
+            "Rotation X",
+            objectRotationOffset.x,
+            -180f,
+            180f);
+
+        objectRotationOffset.y = EditorGUILayout.Slider(
+            "Rotation Y",
+            objectRotationOffset.y,
+            -180f,
+            180f);
+
+        objectRotationOffset.z = EditorGUILayout.Slider(
+            "Rotation Z",
+            objectRotationOffset.z,
+            -180f,
+            180f);
+
+        if (GUILayout.Button("Reset Rotation"))
+        {
+            objectRotationOffset = Vector3.zero;
+            GeneratePreview();
+        }
+
+        objectCompositionOffset.x = EditorGUILayout.Slider(
+            "Offset X",
+            objectCompositionOffset.x,
+            -1f,
+            1f);
+
+        objectCompositionOffset.y = EditorGUILayout.Slider(
+            "Offset Y",
+            objectCompositionOffset.y,
+            -1f,
+            1f);
+
+        if (GUILayout.Button("Reset Offset"))
+        {
+            objectCompositionOffset = Vector2.zero;
+            GeneratePreview();
+        }
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            GeneratePreview();
+        }
+
+        EditorGUILayout.Space(10);
+    }
+
+    private void DrawTexturePreview(
+    Texture2D texture,
+    string label,
+    int size)
+    {
+        EditorGUILayout.BeginVertical();
+
+        GUIStyle labelStyle = new GUIStyle(EditorStyles.miniLabel);
+        labelStyle.alignment = TextAnchor.MiddleCenter;
+
+        GUILayout.Label(label, labelStyle, GUILayout.Width(size));
+
+        Rect previewRect = GUILayoutUtility.GetRect(
+            size,
+            size,
+            GUILayout.Width(size),
+            GUILayout.Height(size));
+
+        if (useTransparentBackground)
+        {
+            DrawCheckerboard(previewRect);
+        }
+
+        if (texture != null)
+        {
+            GUI.DrawTexture(
+                previewRect,
+                texture,
+                ScaleMode.ScaleToFit,
+                true);
+        }
+
+        EditorGUILayout.EndVertical();
+    }
+
     private void ApplyItemTypePreset()
     {
         switch (itemTypePreset)
@@ -864,7 +889,7 @@ public class IconForgeWindow : EditorWindow
 
         Color previousColor = GUI.color;
 
-        GUI.color = new Color(1f, 1f, 1f, 0.06f);
+        GUI.color = new Color(1f, 1f, 1f, 0.10f);
 
         GUI.DrawTexture(
             footprintRect,
@@ -894,8 +919,6 @@ public class IconForgeWindow : EditorWindow
         {
             return;
         }
-
-        GUILayout.Space(10);
 
         Rect logoRect = GUILayoutUtility.GetRect(
             120,
