@@ -46,6 +46,7 @@ public class IconForgeWindow : EditorWindow
     private Vector3 objectRotationOffset = Vector3.zero;
     private Vector2 objectCompositionOffset = Vector2.zero;
     private Vector2 settingsScrollPosition;
+    private bool showAdvancedComposition = false;
 
     private void OnEnable()
     {
@@ -223,6 +224,11 @@ public class IconForgeWindow : EditorWindow
                 lightingProfile,
                 objectRotationOffset,
                 objectCompositionOffset);
+        }
+
+        if (GUILayout.Button("Delete Debug Rig"))
+        {
+            IconForgeDebugRig.DestroyDebugRig();
         }
 
         EditorGUILayout.Space(10);
@@ -408,38 +414,7 @@ public class IconForgeWindow : EditorWindow
         AssetDatabase.Refresh();
 
         Debug.Log($"Icon Forge: Batch exported {batchObjects.Count} icons.");
-    }
-
-    private void AddSelectedHierarchyObjectsToBatch()
-    {
-        GameObject[] selectedObjects = Selection.gameObjects;
-
-        if (selectedObjects == null || selectedObjects.Length == 0)
-        {
-            Debug.LogWarning("Icon Forge: No hierarchy objects selected.");
-            return;
-        }
-
-        int addedCount = 0;
-
-        foreach (GameObject selectedObject in selectedObjects)
-        {
-            if (selectedObject == null)
-            {
-                continue;
-            }
-
-            if (batchObjects.Contains(selectedObject))
-            {
-                continue;
-            }
-
-            batchObjects.Add(selectedObject);
-            addedCount++;
-        }
-
-        Debug.Log($"Icon Forge: Added {addedCount} selected hierarchy objects to batch.");
-    }
+    } 
 
     private void DrawCheckerboard(Rect rect)
     {
@@ -463,63 +438,6 @@ public class IconForgeWindow : EditorWindow
                 EditorGUI.DrawRect(tile, even ? colorA : colorB);
             }
         }
-    }
-
-    private void DrawPreviewPanel()
-    {
-        EditorGUILayout.LabelField("Preview", EditorStyles.boldLabel);
-
-        EditorGUILayout.BeginHorizontal();
-        GUILayout.FlexibleSpace();
-
-        DrawPreviewBox("Detail Preview", 256, 256);
-        GUILayout.Space(16);
-        DrawPreviewBox("64 x 64", 64, 64);
-
-        GUILayout.FlexibleSpace();
-        EditorGUILayout.EndHorizontal();
-    }
-
-    private void DrawPreviewBox(string label, int width, int height)
-    {
-        EditorGUILayout.BeginVertical(GUILayout.Width(width));
-
-        EditorGUILayout.LabelField(label, EditorStyles.centeredGreyMiniLabel);
-
-        Rect outerRect = GUILayoutUtility.GetRect(
-            width,
-            height,
-            GUILayout.Width(width),
-            GUILayout.Height(height));
-
-        // Border
-        EditorGUI.DrawRect(outerRect, new Color(0.28f, 0.28f, 0.28f));
-
-        // Inner preview background
-        Rect innerRect = new Rect(
-            outerRect.x + 1,
-            outerRect.y + 1,
-            outerRect.width - 2,
-            outerRect.height - 2);
-
-        DrawCheckerboard(innerRect);
-
-        if (previewTexture != null)
-        {
-            GUI.DrawTexture(
-                innerRect,
-                previewTexture,
-                ScaleMode.ScaleToFit,
-                true);
-        } else
-        {
-            GUI.Label(
-                innerRect,
-                "Preview",
-                EditorStyles.centeredGreyMiniLabel);
-        }
-
-        EditorGUILayout.EndVertical();
     }
 
     private void DrawOutputSection()
@@ -584,57 +502,100 @@ public class IconForgeWindow : EditorWindow
             "Lighting Profile",
             lightingProfile);
 
-        iconFillPercent = EditorGUILayout.Slider(
-            "Icon Fill",
-            iconFillPercent,
-            10f,
-            175f);
-
-        objectRotationOffset.x = EditorGUILayout.Slider(
-            "Rotation X",
-            objectRotationOffset.x,
-            -180f,
-            180f);
-
-        objectRotationOffset.y = EditorGUILayout.Slider(
-            "Rotation Y",
-            objectRotationOffset.y,
-            -180f,
-            180f);
-
-        objectRotationOffset.z = EditorGUILayout.Slider(
-            "Rotation Z",
-            objectRotationOffset.z,
-            -180f,
-            180f);
-
-        if (GUILayout.Button("Reset Rotation"))
-        {
-            objectRotationOffset = Vector3.zero;
-            GeneratePreview();
-        }
-
-        objectCompositionOffset.x = EditorGUILayout.Slider(
-            "Offset X",
-            objectCompositionOffset.x,
-            -1f,
-            1f);
-
-        objectCompositionOffset.y = EditorGUILayout.Slider(
-            "Offset Y",
-            objectCompositionOffset.y,
-            -1f,
-            1f);
-
-        if (GUILayout.Button("Reset Offset"))
-        {
-            objectCompositionOffset = Vector2.zero;
-            GeneratePreview();
-        }
-
         if (EditorGUI.EndChangeCheck())
         {
             GeneratePreview();
+        }
+
+        if (GUILayout.Button("Apply Item Type Defaults"))
+        {
+            ApplyItemTypePreset();
+            GeneratePreview();
+        }
+
+        showAdvancedComposition = EditorGUILayout.Foldout(
+    showAdvancedComposition,
+    "Advanced Composition",
+    true);
+
+        if (showAdvancedComposition)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            iconFillPercent = EditorGUILayout.IntSlider(
+                "Icon Fill",
+                Mathf.RoundToInt(iconFillPercent),
+                10,
+                175);
+
+            objectRotationOffset.x = EditorGUILayout.IntSlider(
+                "Rotation X",
+                Mathf.RoundToInt(objectRotationOffset.x),
+                -180,
+                180);
+
+            objectRotationOffset.y = EditorGUILayout.IntSlider(
+                "Rotation Y",
+                Mathf.RoundToInt(objectRotationOffset.y),
+                -180,
+                180);
+
+            objectRotationOffset.z = EditorGUILayout.IntSlider(
+                "Rotation Z",
+                Mathf.RoundToInt(objectRotationOffset.z),
+                -180,
+                180);
+
+            objectCompositionOffset.x = EditorGUILayout.Slider(
+                "Offset X",
+                objectCompositionOffset.x,
+                -1f,
+                1f);
+
+            objectCompositionOffset.y = EditorGUILayout.Slider(
+                "Offset Y",
+                objectCompositionOffset.y,
+                -1f,
+                1f);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                objectCompositionOffset.x =
+                    Mathf.Round(objectCompositionOffset.x * 100f) / 100f;
+
+                objectCompositionOffset.y =
+                    Mathf.Round(objectCompositionOffset.y * 100f) / 100f;
+
+                GeneratePreview();
+            }
+
+            EditorGUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("Reset Fill"))
+            {
+                ApplyItemTypePreset();
+                GeneratePreview();
+            }
+
+            if (GUILayout.Button("Reset Rotation"))
+            {
+                objectRotationOffset = Vector3.zero;
+                GeneratePreview();
+            }
+
+            if (GUILayout.Button("Reset Offset"))
+            {
+                objectCompositionOffset = Vector2.zero;
+                GeneratePreview();
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Reset All Composition"))
+            {
+                ApplyItemTypePreset();
+                GeneratePreview();
+            }
         }
 
         EditorGUILayout.Space(10);
@@ -898,19 +859,6 @@ public class IconForgeWindow : EditorWindow
             true);
 
         GUI.color = previousColor;
-    }
-
-    private void DrawHeader()
-    {
-        GUILayout.Space(6);
-
-        GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel);
-        titleStyle.fontSize = 16;
-        titleStyle.alignment = TextAnchor.MiddleCenter;
-
-        GUILayout.Label(
-            "Clockwork Pixie Icon Forge",
-            titleStyle);
     }
 
     private void DrawFooterLogo()
