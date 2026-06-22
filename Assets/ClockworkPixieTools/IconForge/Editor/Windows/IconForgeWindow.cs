@@ -16,7 +16,6 @@ public class IconForgeWindow : EditorWindow
     private Texture2D footprintsTexture;
     private GameObject sourceObject;
     private IconForgeProfile profile;
-    private IconOutputSettings outputSettings;
     private Texture2D previewTexture;
     private float iconFillPercent = 70f;
     private bool showDebugSection = false;
@@ -340,11 +339,6 @@ public class IconForgeWindow : EditorWindow
 
         string exportFolder = "Assets/GeneratedIcons";
 
-        if (outputSettings != null && !string.IsNullOrWhiteSpace(outputSettings.exportFolder))
-        {
-            exportFolder = outputSettings.exportFolder;
-        }
-
         if (!Directory.Exists(exportFolder))
         {
             Directory.CreateDirectory(exportFolder);
@@ -398,11 +392,6 @@ public class IconForgeWindow : EditorWindow
         {
             string exportFolder = "Assets/GeneratedIcons";
 
-            if (outputSettings != null && !string.IsNullOrWhiteSpace(outputSettings.exportFolder))
-            {
-                exportFolder = outputSettings.exportFolder;
-            }
-
             int exportResolution = resolutionValues[selectedResolutionIndex];
 
             IconContactSheetUtility.CreateContactSheet(
@@ -443,12 +432,6 @@ public class IconForgeWindow : EditorWindow
     private void DrawOutputSection()
     {
         EditorGUILayout.LabelField("Output Settings", EditorStyles.boldLabel);
-
-        outputSettings = (IconOutputSettings)EditorGUILayout.ObjectField(
-            "Output Settings",
-            outputSettings,
-            typeof(IconOutputSettings),
-            false);
 
         EditorGUI.BeginChangeCheck();
 
