@@ -2,7 +2,9 @@
 Generate professional game-ready inventory icons directly from your Unity assets.
 
 Clockwork Pixie Icon Forge is a Unity Editor tool that transforms prefabs, FBX models, and scene objects into clean PNG icons with automatic framing, lighting presets, batch processing, reusable profiles, and contact sheet generation.
+
 ---
+
 ## Features
 ### Automatic Icon Generation
 * Generate PNG icons directly from Unity assets
